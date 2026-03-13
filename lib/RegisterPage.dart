@@ -292,7 +292,7 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
               Container(
                 padding: const EdgeInsets.all(25.0),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(40),
                   border: Border.all(
                     color: const Color(0xFFF1BC19),
                     width: 1.5,
