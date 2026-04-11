@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="k16_booking"
+        android:label="K-16 Lounge"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
