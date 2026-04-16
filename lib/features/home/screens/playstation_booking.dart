@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
+import 'seat_playstation.dart';
 
 class RentalPlaystationScreen extends StatelessWidget {
   const RentalPlaystationScreen({super.key});
@@ -28,6 +29,7 @@ class RentalPlaystationScreen extends StatelessWidget {
       'price': 'Rp 10.000',
       'status': 'Available',
     },
+    
   ];
 
   @override
@@ -47,7 +49,8 @@ class RentalPlaystationScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 itemCount: playstations.length,
                 itemBuilder: (context, index) {
-                  return _buildCard(playstations[index]);
+                  // Tambahkan 'context' di sini
+                  return _buildCard(context, playstations[index]); 
                 },
               ),
             ),
@@ -103,7 +106,7 @@ class RentalPlaystationScreen extends StatelessWidget {
   }
 
   // ── 3. Bagian Card Item (Console) ──
-  Widget _buildCard(Map<String, dynamic> item) {
+  Widget _buildCard(BuildContext context, Map<String, dynamic> item) {
     bool isAvailable = item['status'] == 'Available';
 
     return Container(
@@ -200,7 +203,15 @@ class RentalPlaystationScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  // Aksi saat tombol ditekan
+                  // Menuju ke menu seat dan membawa nama PS yang dipilih
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SeatSelectionScreen(
+                        playstationName: item['name'], 
+                      ),
+                    ),
+                  );
                 },
                 child: Text(
                   'BOOK NOW',
@@ -229,4 +240,5 @@ class RentalPlaystationScreen extends StatelessWidget {
       ),
     );
   }
+  
 }
