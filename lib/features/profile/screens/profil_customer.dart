@@ -1,115 +1,110 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
+// Import halaman home customer & login
+import '../../home/screens/home_page_cust.dart';
+import '../../auth/screens/login.dart';
 
-class CustomerProfilePage extends StatefulWidget {
-  const CustomerProfilePage({super.key});
+// ============================================================================
+// ── 1. HALAMAN UTAMA: PROFIL CUSTOMER (DESAIN ADMIN, ISI CUSTOMER) ──
+// ============================================================================
+class CustProfilAccount extends StatefulWidget {
+  const CustProfilAccount({super.key});
 
   @override
-  State<CustomerProfilePage> createState() => _CustomerProfilePageState();
+  State<CustProfilAccount> createState() => _CustProfilAccountState();
 }
 
-class _CustomerProfilePageState extends State<CustomerProfilePage> {
+class _CustProfilAccountState extends State<CustProfilAccount> {
   int _selectedIndex = 2; // Default di Profil
 
-  // Data Dummy Customer
-  final String _namaCustomer = "Budi Santoso";
-  final String _usernameCustomer = "budi_k16";
-  final int _customerPoints = 1250;
+  // Data statis profil customer
+  final String _namaLengkap = 'Nama admin Ex. Budi';
+  final String _username = 'Username Ex. Admin1';
 
-  // ── FUNGSI POP-UP LOGOUT ──
-  void _showLogoutConfirmation(BuildContext context) {
+  // ── Dialog Logout ──
+  void _showLogoutDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return Dialog(
-          backgroundColor: AppColors.background,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-            side: const BorderSide(color: AppColors.primary, width: 1.5),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(25.0),
+          backgroundColor: Colors.transparent,
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: AppColors.cardDark,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: AppColors.primary.withOpacity(0.4), width: 1),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.1),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                ),
+              ],
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Icon Peringatan Merah
                 Container(
-                  width: 60,
-                  height: 60,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
                     color: AppColors.danger.withOpacity(0.2),
                     shape: BoxShape.circle,
                     border: Border.all(color: AppColors.danger, width: 2),
                   ),
-                  alignment: Alignment.center,
-                  child: const Icon(
-                    Icons.logout_rounded,
-                    color: AppColors.error,
-                    size: 30,
-                  ),
+                  child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 32),
                 ),
-                const SizedBox(height: 15),
-                // Judul
-                Text(
-                  'Konfirmasi Logout',
-                  textAlign: TextAlign.center,
-                  style: AppStyles.h3Gold,
-                ),
+                const SizedBox(height: 16),
+                Text('Konfirmasi Logout', style: AppStyles.h2White),
                 const SizedBox(height: 10),
-                // Pesan
                 Text(
-                  'Apakah anda yakin untuk logout \ndari akun K-16 anda?',
+                  'Apakah anda yakin untuk logout dari akun ini?',
                   textAlign: TextAlign.center,
                   style: AppStyles.bodyGrey,
                 ),
-                const SizedBox(height: 25),
-                // Tombol Aksi
+                const SizedBox(height: 24),
                 Row(
                   children: [
-                    // Tombol Batal
                     Expanded(
-                      child: SizedBox(
-                        height: 45,
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: AppColors.primary, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            'Batal',
-                            style: AppStyles.buttonTextGold,
-                          ),
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: AppColors.primary, width: 1.5),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
                         ),
+                        child: Text('Tidak', style: AppStyles.buttonTextGold),
                       ),
                     ),
-                    const SizedBox(width: 15),
-                    // Tombol Ya
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: SizedBox(
-                        height: 45,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text("Berhasil Logout")),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.danger,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
-                          child: Text(
-                            'Ya, Keluar',
-                            style: AppStyles.buttonTextWhite.copyWith(fontSize: 14),
-                          ),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          // 1. Tutup pop-up dialog dulu
+                          Navigator.of(context).pop();
+                          
+                          // 2. Munculin notifikasi sukses
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Berhasil logout')),
+                          );
+                          
+                          // 3. Pindah ke HalamanLogin & HAPUS semua riwayat halaman biar ga bisa di-back
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const HalamanLogin()),
+                            (Route<dynamic> route) => false,
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.danger,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          padding: const EdgeInsets.symmetric(vertical: 13),
+                          elevation: 3,
                         ),
+                        child: Text('Ya', style: AppStyles.buttonTextWhite),
                       ),
                     ),
                   ],
@@ -128,190 +123,296 @@ class _CustomerProfilePageState extends State<CustomerProfilePage> {
       backgroundColor: AppColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 10),
-              
-              // ── 1. KARTU PROFIL HEADER ──
+              const SizedBox(height: 16),
+
+              // Avatar Gede
               Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
+                width: 90,
+                height: 90,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.primary, width: 1.5),
-                  gradient: const LinearGradient(
-                    colors: [AppColors.cardDark, AppColors.cardLight],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+                  shape: BoxShape.circle,
+                  color: AppColors.background,
+                  border: Border.all(color: AppColors.primary, width: 3),
+                ),
+                child: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 50),
+              ),
+              const SizedBox(height: 14),
+
+              // Title Name
+              Text('Customer name', style: AppStyles.h2White),
+              const SizedBox(height: 24),
+
+              // Profil Header
+              Row(
+                children: [
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(Icons.person, color: AppColors.background, size: 22),
                   ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
-                      blurRadius: 15,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    // Bagian Atas
-                    Row(
-                      children: [
-                        // Avatar Bulat
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary, width: 2),
-                            color: Colors.white12,
-                          ),
-                          child: const Icon(Icons.person, color: AppColors.primary, size: 35),
-                        ),
-                        const SizedBox(width: 15),
-                        // Nama & Username
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _namaCustomer,
-                                style: AppStyles.h3Gold,
-                              ),
-                              Text(
-                                "@$_usernameCustomer",
-                                style: AppStyles.bodyGrey.copyWith(fontSize: 12),
-                              ),
-                            ],
-                          ),
-                        ),
-                        // Tombol Edit
-                        IconButton(
-                          onPressed: () {},
-                          icon: const Icon(Icons.edit_note_rounded, color: AppColors.textGrey, size: 28),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    // Bagian Bawah (Customer Points)
-                    Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: Colors.black38,
-                        borderRadius: BorderRadius.circular(15),
+                  const SizedBox(width: 10),
+                  Text('Profil', style: AppStyles.h2White),
+                ],
+              ),
+              const SizedBox(height: 22),
+
+              // ── Field Murni Punya Customer ──
+              _buildStaticField(label: 'Nama Lengkap', value: _namaLengkap),
+              const SizedBox(height: 18),
+              _buildStaticField(label: 'Username', value: _username),
+              const SizedBox(height: 32),
+
+              // ── Tombol Edit Profile ──
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const EditCustomerProfile()),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    elevation: 4,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.edit_document, color: AppColors.background, size: 24),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Edit Profile',
+                        style: AppStyles.buttonTextWhite.copyWith(color: AppColors.background, fontSize: 18),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "K-16 Customer Points",
-                            style: AppStyles.bodyWhite.copyWith(fontSize: 13),
-                          ),
-                          Row(
-                            children: [
-                              const Icon(Icons.stars_rounded, color: AppColors.primary, size: 20),
-                              const SizedBox(width: 5),
-                              Text(
-                                "$_customerPoints Pts",
-                                style: AppStyles.h3Gold.copyWith(fontSize: 16),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
               
-              const SizedBox(height: 35),
-              
-              // ── 2. DAFTAR MENU PENGATURAN ──
-              _buildSettingTile(
-                icon: Icons.notifications_none_rounded,
-                title: "Notification Settings",
-                onTap: () {},
+              const SizedBox(height: 15),
+
+              // ── Tombol Logout ──
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: _showLogoutDialog,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.danger,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    elevation: 4,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          border: Border.all(color: AppColors.primary, width: 1.5),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: const Icon(Icons.logout_rounded, color: AppColors.primary, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Logout',
+                        style: AppStyles.buttonTextWhite.copyWith(fontSize: 18),
+                      ),
+                    ],
+                  ),
+                ),
               ),
-              _buildSettingTile(
-                icon: Icons.account_circle_outlined,
-                title: "Account & Security",
-                onTap: () {},
-              ),
-              _buildSettingTile(
-                icon: Icons.color_lens_outlined,
-                title: "Theme Mode",
-                onTap: () {},
-              ),
-              _buildSettingTile(
-                icon: Icons.support_agent_rounded,
-                title: "Help & Support",
-                onTap: () {},
-              ),
-              _buildSettingTile(
-                icon: Icons.assignment_outlined,
-                title: "Terms & Conditions",
-                onTap: () {},
-              ),
-              
-              // Separator tipis
-              const Divider(color: Colors.white10, height: 20),
-              
-              // Tombol Logout (Warna Merah)
-              _buildSettingTile(
-                icon: Icons.logout_rounded,
-                title: "Logout Account",
-                iconColor: AppColors.error,
-                onTap: () => _showLogoutConfirmation(context),
-              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),
       ),
-      // ── 3. BOTTOM NAVIGATION BAR ──
+
+      // ── BOTTOM NAVIGATION BAR ──
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
-        unselectedItemColor: AppColors.textMuted,
+        unselectedItemColor: AppColors.textWhite,
         currentIndex: _selectedIndex,
-        onTap: (index) => setState(() => _selectedIndex = index),
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          } else {
+            setState(() => _selectedIndex = index);
+          }
+        },
         showSelectedLabels: false,
         showUnselectedLabels: false,
         type: BottomNavigationBarType.fixed,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.bookmark_outline_rounded), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: ""),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: ""),
         ],
       ),
     );
   }
 
-  // Widget Builder buat Item Menu Pengaturan
-  Widget _buildSettingTile({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-    Color iconColor = AppColors.primary,
-  }) {
-    return ListTile(
-      onTap: onTap,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 5, vertical: 0),
-      leading: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: iconColor.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(10),
+  Widget _buildStaticField({required String label, required String value}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppStyles.h2White.copyWith(fontSize: 15)),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(32),
+          ),
+          child: Text(
+            value,
+            style: AppStyles.bodyWhite.copyWith(color: const Color(0xFF555555)),
+          ),
         ),
-        child: Icon(icon, color: iconColor, size: 22),
+      ],
+    );
+  }
+}
+
+
+// ============================================================================
+// ── 2. HALAMAN EDIT PROFIL CUSTOMER ──
+// ============================================================================
+class EditCustomerProfile extends StatefulWidget {
+  const EditCustomerProfile({super.key});
+
+  @override
+  State<EditCustomerProfile> createState() => _EditCustomerProfileState();
+}
+
+class _EditCustomerProfileState extends State<EditCustomerProfile> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(height: 16),
+              
+              // Avatar Gede
+              Container(
+                width: 90,
+                height: 90,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.background,
+                  border: Border.all(color: AppColors.primary, width: 3),
+                ),
+                child: const Icon(Icons.person_outline_rounded, color: AppColors.primary, size: 50),
+              ),
+              const SizedBox(height: 14),
+
+              Text('Customer name', style: AppStyles.h2White),
+              const SizedBox(height: 24),
+
+              // Tombol Kembali
+              GestureDetector(
+                onTap: () => Navigator.pop(context),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.primary, width: 2),
+                      ),
+                      child: const Icon(Icons.arrow_back, color: AppColors.primary, size: 18),
+                    ),
+                    const SizedBox(width: 10),
+                    Text('Kembali ke Halaman Profil', style: AppStyles.h2White.copyWith(fontSize: 16)),
+                  ],
+                ),
+              ),
+              
+              const SizedBox(height: 22),
+
+              // ── Field Murni Punya Edit Customer ──
+              _buildEditTextField("Nama", "Masukkan nama anda"),
+              const SizedBox(height: 18),
+              _buildEditTextField("Username", "Masukkan username anda"),
+              const SizedBox(height: 18),
+              _buildEditTextField("Konfirmasi Password", "Masukkan password anda", isPassword: true),
+              const SizedBox(height: 18),
+              _buildEditTextField("Password", "Masukkan ulang password anda", isPassword: true),
+              
+              const SizedBox(height: 32),
+
+              // Tombol Simpan
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF4CAF50), // Hijau
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                  ),
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Profil berhasil diperbarui!")),
+                    );
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    "Simpan",
+                    style: AppStyles.buttonTextWhite.copyWith(fontSize: 18, letterSpacing: 1.2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
       ),
-      title: Text(
-        title,
-        style: AppStyles.bodyWhite,
-      ),
-      trailing: const Icon(Icons.arrow_forward_ios_rounded, color: AppColors.textMuted, size: 16),
+    );
+  }
+
+  // Widget Edit Field (Radius 32)
+  Widget _buildEditTextField(String label, String hint, {bool isPassword = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: AppStyles.h2White.copyWith(fontSize: 15)),
+        const SizedBox(height: 8),
+        TextField(
+          obscureText: isPassword,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: AppStyles.bodyGrey.copyWith(color: Colors.grey),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(32),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
