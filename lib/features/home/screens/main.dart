@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
-import 'tampilan_awal.dart'; 
+import 'tampilan_awal.dart';
+import 'playstation_booking.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -36,7 +37,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
       ),
-      home: const SplashScreen(), 
+      home: const RentalPlaystationScreen(), 
     );
   }
 }
