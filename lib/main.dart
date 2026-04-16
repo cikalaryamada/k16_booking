@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
+<<<<<<< HEAD
 import 'features/home/screens/playstation_booking.dart';
 
+=======
+import 'features/home/screens/tampilan_awal.dart'; 
+import 'features/profile/screens/profil_admin.dart';
+import 'features/profile/screens/profil_customer.dart';
+import 'features/home/screens/home_page_cust.dart';
+import 'features/auth/screens/login.dart';
+>>>>>>> 7952f4964f3dc9e996bb1fee7cbcd87dadeb4c92
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
@@ -35,6 +43,12 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: <TargetPlatform, PageTransitionsBuilder>{
+            TargetPlatform.android: CupertinoPageTransitionsBuilder(), 
+            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          },
+        ),
       ),
       home: const RentalPlaystationScreen(), 
     );
