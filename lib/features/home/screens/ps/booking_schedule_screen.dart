@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 // PASTIKAN PATH IMPORT INI SESUAI DENGAN FOLDER KAMU:
-import '../../../core/constants/app_colors.dart'; 
-import '../../../core/constants/app_styles.dart'; 
+import '../../../../core/constants/app_colors.dart'; 
+import '../../../../core/constants/app_styles.dart'; 
 
 class BookingScheduleScreen extends StatefulWidget {
   // 1. Variabel penampung data dari halaman Pilih Kursi

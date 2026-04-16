@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
-<<<<<<< HEAD
-import 'features/home/screens/playstation_booking.dart';
-
-=======
 import 'features/home/screens/tampilan_awal.dart'; 
 import 'features/profile/screens/profil_admin.dart';
 import 'features/profile/screens/profil_customer.dart';
 import 'features/home/screens/home_page_cust.dart';
 import 'features/auth/screens/login.dart';
->>>>>>> 7952f4964f3dc9e996bb1fee7cbcd87dadeb4c92
+import 'features/home/screens/ps/playstation_booking.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
