@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import 'login.dart'; 
+import '../../home/screens/home_page_cust.dart';
 
 class HalamanRegistrasi extends StatefulWidget {
   const HalamanRegistrasi({Key? key}) : super(key: key);
@@ -104,7 +105,17 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
       _showErrorDialog("Password Tidak Sesuai", "Password dan konfirmasi password yang anda masukkan tidak sesuai.");
       return;
     }
-    debugPrint("Validasi sukses! Lanjut ke proses pendaftaran.");
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Registrasi Berhasil! Selamat datang di K-16.")),
+    );
+
+    // 2. Langsung terbang ke HomePage dan hapus riwayat halaman register (biar gak bisa di-back)
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const HomePage()),
+      (Route<dynamic> route) => false,
+    );
   }
 
   @override
