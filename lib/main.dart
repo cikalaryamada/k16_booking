@@ -7,6 +7,8 @@ import 'features/profile/screens/profil_customer.dart';
 import 'features/home/screens/home_page_cust.dart';
 import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
+import 'features/home/screens/home_page_admin.dart';
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
@@ -46,7 +48,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: const RentalPlaystationScreen(), 
+      home: const Dashboard(), 
     );
   }
 }
