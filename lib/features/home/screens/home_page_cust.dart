@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
-// Import halaman profil customer
 import '../../profile/screens/profil_customer.dart';
 
 class HomePage extends StatefulWidget {
