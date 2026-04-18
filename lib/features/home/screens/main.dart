@@ -1,13 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
-import 'features/home/screens/tampilan_awal.dart'; 
-import 'features/profile/screens/profil_admin.dart';
-import 'features/profile/screens/profil_customer.dart';
-import 'features/home/screens/home_page_cust.dart';
-import 'features/auth/screens/login.dart';
-import 'features/home/screens/ps/playstation_booking.dart';
-import 'features/home/screens/Notifikasipage.dart';
+import 'tampilan_awal.dart'; 
+
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setSystemUIOverlayStyle(
@@ -40,14 +35,8 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: <TargetPlatform, PageTransitionsBuilder>{
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(), 
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
-        ),
       ),
-      home: const NotifikasiPage(), 
+      home: const SplashScreen(), 
     );
   }
 }
