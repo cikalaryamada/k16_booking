@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: const NotifikasiPage(), 
+      home: const SplashScreen(), 
     );
   }
 }
