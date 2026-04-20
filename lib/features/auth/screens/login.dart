@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http; // Wajib import ini
-import 'dart:convert'; // Untuk mendecode JSON
+import 'package:http/http.dart' as http; 
+import 'dart:convert'; 
 
+// Sesuaikan letak import folder kamu jika ada yang merah
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import 'register_page.dart';
 
+// Import halaman home customer (Agar setelah login bisa langsung pindah ke sini)
+import '../../home/screens/home_page_cust.dart'; 
+
 class HalamanLogin extends StatefulWidget {
-  const HalamanLogin({super.key}); // Perbaikan parameter key
+  const HalamanLogin({super.key}); // Diperbarui agar lebih rapi (super.key)
 
   @override
   State<HalamanLogin> createState() => _HalamanLoginState();
@@ -148,6 +152,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
           // LOGIN BERHASIL
           debugPrint("Login sukses: ${data['message']}");
           
+          if (!mounted) return;
           // Memunculkan pesan sukses kecil di bawah layar
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -159,30 +164,37 @@ class _HalamanLoginState extends State<HalamanLogin> {
           // PENTING: Arahkan Halaman Berdasarkan Role Database
           int roleId = int.parse(data['data']['role'].toString());
           if (roleId == 1) {
-            // TODO: Arahkan ke halaman Admin
+            // TODO: Arahkan ke halaman Admin (nanti jika halaman admin sudah ada)
             // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HalamanAdmin()));
           } else {
-            // TODO: Arahkan ke halaman Customer
-            // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => TampilanAwal()));
+            // ARAHKAN KE HALAMAN CUSTOMER (HomePage)
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
           }
 
         } else {
           // LOGIN GAGAL (Password Salah / Username tidak ada)
-          _showErrorDialog("Login Gagal", data['message']);
+          if (mounted) _showErrorDialog("Login Gagal", data['message']);
         }
       } else {
-        _showErrorDialog("Error Server", "Terjadi kesalahan pada server (Error ${response.statusCode})");
+        if (mounted) _showErrorDialog("Error Server", "Terjadi kesalahan pada server (Error ${response.statusCode})");
       }
     } catch (e) {
-      _showErrorDialog(
-        "Error Koneksi", 
-        "Gagal terhubung ke database. Pastikan XAMPP menyala dan URL benar.\n\nDetail: $e"
-      );
+      if (mounted) {
+        _showErrorDialog(
+          "Error Koneksi", 
+          "Gagal terhubung ke database. Pastikan XAMPP menyala dan URL benar.\n\nDetail: $e"
+        );
+      }
     } finally {
       // Mematikan animasi loading setelah proses selesai (berhasil/gagal)
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -234,7 +246,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.2), // Pakai withValues
+                      color: AppColors.primary.withValues(alpha: 0.2), // Diperbarui agar tidak warning
                       blurRadius: 15,
                       spreadRadius: 2,
                     ),
