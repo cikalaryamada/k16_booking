@@ -3,6 +3,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import 'login.dart'; 
 import '../../home/screens/home_page_cust.dart';
+import '../../../core/network/api_service.dart'; // <--- Tambahkan baris ini
 
 class HalamanRegistrasi extends StatefulWidget {
   const HalamanRegistrasi({Key? key}) : super(key: key);
@@ -19,6 +20,7 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false; // <--- Tambahkan baris ini
 
   @override
   void dispose() {
@@ -83,12 +85,13 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
     );
   }
 
-  void _validateRegistration() {
+  Future<void> _validateRegistration() async {
     String name = _nameController.text.trim();
     String username = _usernameController.text.trim();
     String password = _passwordController.text;
     String confirmPassword = _confirmPasswordController.text;
 
+    // --- Validasi Lokal ---
     if (name.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty) {
       _showErrorDialog("Form Tidak Lengkap", "Semua kolom wajib diisi. Pastikan tidak ada yang terlewat.");
       return;
@@ -105,17 +108,30 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
       _showErrorDialog("Password Tidak Sesuai", "Password dan konfirmasi password yang anda masukkan tidak sesuai.");
       return;
     }
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Registrasi Berhasil! Selamat datang di K-16.")),
-    );
 
-    // 2. Langsung terbang ke HomePage dan hapus riwayat halaman register (biar gak bisa di-back)
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(builder: (context) => const HomePage()),
-      (Route<dynamic> route) => false,
-    );
+    // --- Mengirim ke Server (Database) ---
+    setState(() { _isLoading = true; }); // Munculkan efek loading
+
+    final result = await ApiService.registerUser(name, username, password);
+
+    setState(() { _isLoading = false; }); // Matikan efek loading
+
+    // --- Cek Hasil dari Server ---
+    if (result['status'] == 'success') {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Registrasi Berhasil! Selamat datang di K-16.")),
+      );
+
+      // Terbang ke HomePage jika berhasil masuk database
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const HomePage()),
+        (Route<dynamic> route) => false,
+      );
+    } else {
+      // Tampilkan pesan error dari PHP (misal: "Username sudah terdaftar!")
+      _showErrorDialog("Registrasi Gagal", result['message']);
+    }
   }
 
   @override
@@ -287,8 +303,15 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                             side: const BorderSide(color: AppColors.primary, width: 1.5),
                           ),
-                          onPressed: () => _validateRegistration(),
-                          child: Text("Register Now!", style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),
+                          // Jika sedang loading, matikan klik
+                          onPressed: _isLoading ? null : () => _validateRegistration(),
+                          // Jika sedang loading, tampilkan putaran (CircularProgress), jika tidak tampilkan teks
+                          child: _isLoading 
+                              ? const SizedBox(
+                                  width: 24, height: 24,
+                                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                                )
+                              : Text("Register Now!", style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),
                         ),
                       ),
                     )

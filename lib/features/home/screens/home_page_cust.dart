@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                   Expanded(
                     child: _buildServiceCard(
                       title: "Karaoke",
-                      subtitle: "Small, Med, VIP",
+                      subtitle: "Luxury, Premiere, Exclusive",
                       icon: Icons.mic_rounded,
                       colorTheme: const Color(0xFFE88A34), 
                       onTap: () {},
