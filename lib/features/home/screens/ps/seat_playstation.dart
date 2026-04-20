@@ -1,28 +1,52 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-// PASTIKAN PATH IMPORT INI SESUAI DENGAN FOLDER KAMU:
 import '../../../../core/constants/app_colors.dart'; 
 import '../../../../core/constants/app_styles.dart'; 
+// PERBAIKAN: Import file jadwal yang benar
 import 'booking_schedule_screen.dart'; 
 
-class SeatSelectionScreen extends StatelessWidget {
-  // 1. Variabel untuk menerima data dari halaman sebelumnya
-  final String playstationName; 
+class SeatSelectionScreen extends StatefulWidget {
+  final String namaTampil; 
 
-  // 2. Tambahkan ke dalam constructor (wajib diisi saat pindah halaman)
-  SeatSelectionScreen({super.key, required this.playstationName});
+  const SeatSelectionScreen({super.key, required this.namaTampil});
 
-  // Data dummy kursi (Nanti ini diganti dengan data dari Database / API)
-  // Logikanya nanti: Ambil data kursi yang 'ps_type'-nya == playstationName
-  final List<Map<String, dynamic>> seats = [
-    {'id': '01', 'status': 'Available'},
-    {'id': '02', 'status': 'Already Full'},
-    {'id': '03', 'status': 'Available'},
-    {'id': '04', 'status': 'Available'},
-    {'id': '05', 'status': 'Already Full'},
-    {'id': '06', 'status': 'Available'},
-  ];
+  @override
+  State<SeatSelectionScreen> createState() => _SeatSelectionScreenState();
+}
+
+class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
+  List<dynamic> seats = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchDataKursi(); 
+  }
+
+  Future<void> fetchDataKursi() async {
+    // Ubah URL ke 10.0.2.2 jika ngetes pakai Emulator Android
+    final String url = 'http://localhost/k16_api/get_kursi.php?nama_ps=${widget.namaTampil}';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        setState(() {
+          seats = json.decode(response.body);
+          isLoading = false;
+        });
+      } else {
+        debugPrint('Gagal mengambil data'); // Mengganti print agar warning hilang
+        setState(() => isLoading = false);
+      }
+    } catch (e) {
+      debugPrint('Error sambungan: $e'); // Mengganti print agar warning hilang
+      setState(() => isLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,13 +61,17 @@ class SeatSelectionScreen extends StatelessWidget {
             _buildSubHeader(context),
             const SizedBox(height: 20),
             Expanded(
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: seats.length,
-                itemBuilder: (context, index) {
-                  return _buildSeatCard(context, seats[index]);
-                },
-              ),
+              child: isLoading 
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  : seats.isEmpty 
+                      ? Center(child: Text('Tidak ada kursi untuk ${widget.namaTampil}', style: AppStyles.bodyWhite))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: seats.length,
+                          itemBuilder: (context, index) {
+                            return _buildSeatCard(context, seats[index]);
+                          },
+                        ),
             ),
             _buildBottomNav(),
           ],
@@ -82,21 +110,16 @@ class SeatSelectionScreen extends StatelessWidget {
         children: [
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: const Icon(
-              Icons.arrow_circle_left_outlined,
-              color: AppColors.primary,
-              size: 28,
-            ),
+            child: const Icon(Icons.arrow_circle_left_outlined, color: AppColors.primary, size: 28),
           ),
           const SizedBox(width: 12),
-          // 3. Tampilkan nama PS yang dipilih agar judulnya dinamis
-          Text('Kursi $playstationName', style: AppStyles.h2White),
+          Text('Pilih ${widget.namaTampil}', style: AppStyles.h2White),
         ],
       ),
     );
   }
 
-  Widget _buildSeatCard(BuildContext context, Map<String, dynamic> item) {
+  Widget _buildSeatCard(BuildContext context, dynamic item) {
     bool isAvailable = item['status'] == 'Available';
 
     return Container(
@@ -110,105 +133,72 @@ class SeatSelectionScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icon Sofa
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: AppColors.primaryDark),
             ),
-            child: const Icon(
-              Icons.weekend, // Icon mirip sofa
-              color: AppColors.primary,
-              size: 28,
-            ),
+            child: const Icon(Icons.weekend, color: AppColors.primary, size: 28),
           ),
           const SizedBox(width: 16),
-          
-          // Info Teks
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Kursi', style: AppStyles.labelBold),
+                Text(item['fisik_ruangan'], style: AppStyles.labelBold.copyWith(fontSize: 16)),
                 Text(
-                  'nomor ${item['id']}',
-                  style: AppStyles.bodyWhite.copyWith(fontWeight: FontWeight.bold),
+                  'Rp. ${double.parse(item['harga'].toString()).toInt()}/jam',
+                  style: AppStyles.bodyGrey.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
           ),
-          
-          // Bagian Kanan (Status & Tombol)
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (isAvailable) ...[
-                // Badge Available
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFF66BB6A)), // Hijau
+                    border: Border.all(color: const Color(0xFF66BB6A)),
                   ),
-                  child: Text(
-                    'Available',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF66BB6A),
-                    ),
-                  ),
+                  child: Text('Available', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF66BB6A))),
                 ),
                 const SizedBox(height: 8),
-                // Tombol BOOK
                 GestureDetector(
                   onTap: () {
-                    // Navigasi ke halaman Booking Schedule
+                    // PERBAIKAN: Ini sudah membawa parameter SQL lengkap yang diminta halaman 3
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-builder: (context) => BookingScheduleScreen(
-                          playstationName: playstationName, // Diambil dari data yang dikirim halaman pertama
-                          seatId: item['id'],               // Diambil dari nomor kursi yang diklik
+                        builder: (context) => BookingScheduleScreen(
+                          idTarif: item['id_tarif'].toString(),
+                          idUnit: item['id_unit'].toString(),
+                          namaTampil: widget.namaTampil,
+                          fisikRuangan: item['fisik_ruangan'].toString(),
+                          hargaPerJam: double.parse(item['harga'].toString()),
                         ),
                       ),
                     );
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryDark,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                    decoration: BoxDecoration(color: AppColors.primaryDark, borderRadius: BorderRadius.circular(20)),
                     child: Row(
                       children: [
                         const Icon(Icons.star_border, color: Colors.white, size: 14),
                         const SizedBox(width: 4),
-                        Text(
-                          'BOOK',
-                          style: GoogleFonts.poppins(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+                        Text('BOOK', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
                       ],
                     ),
                   ),
                 ),
               ] else ...[
-                // Teks Already Full
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text(
-                    'Already Full',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.error,
-                    ),
-                  ),
+                  child: Text('Already Full', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.error)),
                 ),
               ]
             ],

@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// PASTIKAN PATH IMPORT INI SESUAI DENGAN FOLDER KAMU:
 import '../../../../core/constants/app_colors.dart'; 
 import '../../../../core/constants/app_styles.dart'; 
 
 class BookingScheduleScreen extends StatefulWidget {
-  // 1. Variabel penampung data dari halaman Pilih Kursi
-  final String playstationName;
-  final String seatId;
+  // SUDAH COCOK DENGAN PENGIRIMAN DARI HALAMAN 2
+  final String idTarif;
+  final String idUnit;
+  final String namaTampil;
+  final String fisikRuangan;
+  final double hargaPerJam;
 
-  // 2. Wajib dimasukkan saat dipanggil
   const BookingScheduleScreen({
     super.key,
-    required this.playstationName,
-    required this.seatId,
+    required this.idTarif,
+    required this.idUnit,
+    required this.namaTampil,
+    required this.fisikRuangan,
+    required this.hargaPerJam,
   });
 
   @override
@@ -22,15 +26,13 @@ class BookingScheduleScreen extends StatefulWidget {
 }
 
 class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
-  // Data dummy tanggal
-  final List<Map<String, dynamic>> dates = [
+  final List<Map<String, dynamic>> dates = const [
     {'day': 'Minggu', 'date': '01', 'month': 'Mar', 'isSelected': true},
     {'day': 'Senin', 'date': '02', 'month': 'Mar', 'isSelected': false},
     {'day': 'Selasa', 'date': '03', 'month': 'Mar', 'isSelected': false},
   ];
 
-  // Data dummy jam (dengan status)
-  final List<Map<String, dynamic>> times = [
+  final List<Map<String, dynamic>> times = const [
     {'time': '10:00', 'status': 'available'},
     {'time': '11:00', 'status': 'booked'},
     {'time': '12:00', 'status': 'available'},
@@ -44,6 +46,74 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     {'time': '20:00', 'status': 'selected'},
     {'time': '21:00', 'status': 'available'},
   ];
+
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          backgroundColor: const Color(0xFFE8E5D7),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.verified, color: AppColors.primary, size: 60),
+                const SizedBox(height: 12),
+                Text('BOOKING BERHASIL\nDIPESAN', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.buttonBrown, height: 1.2)),
+                const SizedBox(height: 8),
+                Text('Terima kasih atas pesanan mu!', style: GoogleFonts.poppins(fontSize: 14, color: AppColors.buttonBrown)),
+                const SizedBox(height: 16),
+                const Divider(color: AppColors.primary, thickness: 1.5),
+                const SizedBox(height: 16),
+                Align(alignment: Alignment.centerLeft, child: Text('Ringkasan Pemesanan', style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.buttonBrown))),
+                const SizedBox(height: 12),
+
+                _buildDetailRow('Nomor Pesanan', '000002'), 
+                _buildDetailRow('Pelanggan', 'DummyCust'),  
+                _buildDetailRow('Room', widget.namaTampil), 
+                _buildDetailRow('Unit', widget.fisikRuangan),
+                _buildDetailRow('Jadwal', '01/03/2026\n20.00 - 21.00 WIB'),
+                
+                const SizedBox(height: 16),
+                Text('Mohon datang 15 menit sebelum waktu booking\nTunjukkan bukti booking & bayar di lokasi untuk mulai.', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 11, color: AppColors.buttonBrown)),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primaryDark,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    },
+                    child: Text('TUTUP & KEMBALI KE HALAMAN UTAMA', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 130, child: Text(label, style: GoogleFonts.poppins(fontSize: 13, color: AppColors.buttonBrown))),
+          Expanded(child: Text(value, style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.buttonBrown))),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -64,17 +134,13 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                   children: [
                     _buildDateSelector(),
                     const SizedBox(height: 20),
-                    Container(
-                      height: 3,
-                      width: double.infinity,
-                      color: AppColors.primary,
-                    ),
+                    Container(height: 3, width: double.infinity, color: AppColors.primary),
                     const SizedBox(height: 20),
                     _buildTimeGrid(),
                     const SizedBox(height: 24),
                     _buildSummaryCard(),
                     const SizedBox(height: 24),
-                    _buildCheckoutCard(),
+                    _buildCheckoutCard(context), 
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -92,18 +158,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Row(
         children: [
-          const CircleAvatar(
-            radius: 26,
-            backgroundColor: AppColors.cardLight,
-            child: Icon(Icons.image, color: Colors.white),
-          ),
+          const CircleAvatar(radius: 26, backgroundColor: AppColors.cardLight, child: Icon(Icons.image, color: Colors.white)),
           const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('K-16', style: AppStyles.h1Gold),
-              Text('Lounge App', style: AppStyles.h3Gold),
-            ],
+            children: [Text('K-16', style: AppStyles.h1Gold), Text('Lounge App', style: AppStyles.h3Gold)],
           )
         ],
       ),
@@ -115,24 +174,9 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
       child: Row(
         children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: const Icon(
-              Icons.arrow_circle_left_outlined,
-              color: AppColors.primary,
-              size: 28,
-            ),
-          ),
+          GestureDetector(onTap: () => Navigator.pop(context), child: const Icon(Icons.arrow_circle_left_outlined, color: AppColors.primary, size: 28)),
           const SizedBox(width: 12),
-          // 3. Kita tampilkan data yang dibawa agar judulnya sesuai!
-          // Pakai widget. untuk memanggil variabel dari class StatefulWidget
-          Expanded(
-            child: Text(
-              '${widget.playstationName} - Kursi ${widget.seatId}', 
-              style: AppStyles.h2White,
-              overflow: TextOverflow.ellipsis, // Supaya kalau teksnya kepanjangan jadi titik-titik (...)
-            ),
-          ),
+          Expanded(child: Text('${widget.namaTampil} - ${widget.fisikRuangan}', style: AppStyles.h2White, overflow: TextOverflow.ellipsis)),
         ],
       ),
     );
@@ -144,46 +188,23 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: dates.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final date = dates[index];
           final isSelected = date['isSelected'] as bool;
-
           return Container(
             width: 70,
             decoration: BoxDecoration(
               color: isSelected ? AppColors.primaryDark : AppColors.cardDark,
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isSelected ? AppColors.primaryDark : AppColors.primaryDark,
-              ),
+              border: Border.all(color: AppColors.primaryDark),
             ),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
-                  date['day'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 12,
-                    color: isSelected ? Colors.white : AppColors.textGrey,
-                  ),
-                ),
-                Text(
-                  date['date'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppColors.textWhite,
-                  ),
-                ),
-                Text(
-                  date['month'],
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: isSelected ? Colors.white : AppColors.textWhite,
-                  ),
-                ),
+                Text(date['day'], style: GoogleFonts.poppins(fontSize: 12, color: isSelected ? Colors.white : AppColors.textGrey)),
+                Text(date['date'], style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textWhite)),
+                Text(date['month'], style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : AppColors.textWhite)),
               ],
             ),
           );
@@ -199,38 +220,15 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
       children: times.map((t) {
         final status = t['status'];
         final time = t['time'];
-
-        Color bgColor;
-        Color borderColor;
-
-        if (status == 'selected') {
-          bgColor = AppColors.primaryDark;
-          borderColor = AppColors.primaryDark;
-        } else if (status == 'booked') {
-          bgColor = AppColors.danger; 
-          borderColor = AppColors.danger;
-        } else {
-          bgColor = AppColors.cardDark;
-          borderColor = AppColors.primaryDark;
-        }
+        Color bgColor = status == 'selected' ? AppColors.primaryDark : status == 'booked' ? AppColors.danger : AppColors.cardDark;
+        Color borderColor = status == 'selected' ? AppColors.primaryDark : status == 'booked' ? AppColors.danger : AppColors.primaryDark;
 
         return Container(
           width: 75, 
           padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: bgColor,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: borderColor),
-          ),
+          decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(8), border: Border.all(color: borderColor)),
           alignment: Alignment.center,
-          child: Text(
-            time,
-            style: GoogleFonts.poppins(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          child: Text(time, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white)),
         );
       }).toList(),
     );
@@ -239,21 +237,13 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
   Widget _buildSummaryCard() {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      decoration: BoxDecoration(
-        color: AppColors.cardDark,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryDark),
-      ),
+      decoration: BoxDecoration(color: AppColors.cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primaryDark)),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text('1 Jam', style: AppStyles.h2White),
           const SizedBox(width: 20),
-          Container(
-            height: 30,
-            width: 2,
-            color: AppColors.primary, 
-          ),
+          Container(height: 30, width: 2, color: AppColors.primary),
           const SizedBox(width: 20),
           Text('20:00 - 21:00', style: AppStyles.h2White),
         ],
@@ -261,21 +251,17 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     );
   }
 
-  Widget _buildCheckoutCard() {
+  Widget _buildCheckoutCard(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.cardDark,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryDark),
-      ),
+      decoration: BoxDecoration(color: AppColors.cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primaryDark)),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Total:', style: AppStyles.h2White),
-              Text('Rp. 10.000', style: AppStyles.h2White),
+              Text('Rp. ${widget.hargaPerJam.toInt()}', style: AppStyles.h2White),
             ],
           ),
           const SizedBox(height: 20),
@@ -285,19 +271,10 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primaryDark,
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(24),
-                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
               ),
-              onPressed: () {
-                // Aksi Konfirmasi Pembayaran
-                // Nanti di sini fungsi POST ke database berjalan
-                // Mengirimkan data: widget.playstationName, widget.seatId, jam, dll
-              },
-              child: Text(
-                'Konfirmasi',
-                style: AppStyles.buttonTextWhite.copyWith(fontSize: 18),
-              ),
+              onPressed: () => _showSuccessDialog(context),
+              child: Text('Konfirmasi', style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),
             ),
           ),
         ],
