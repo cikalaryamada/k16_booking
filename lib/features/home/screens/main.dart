@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'login.dart';
+import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
+import 'tampilan_awal.dart'; 
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,18 +35,8 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: <TargetPlatform, PageTransitionsBuilder>{
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(), 
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
-        ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      home: const SplashScreen(), 
     );
   }
 }
