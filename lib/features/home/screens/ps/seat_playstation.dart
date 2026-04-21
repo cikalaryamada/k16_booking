@@ -5,8 +5,13 @@ import 'dart:convert';
 
 import '../../../../core/constants/app_colors.dart'; 
 import '../../../../core/constants/app_styles.dart'; 
-// PERBAIKAN: Import file jadwal yang benar
+import '../../../../core/network/api_service.dart'; 
 import 'booking_schedule_screen.dart'; 
+
+// ── IMPORT HALAMAN LAIN BIAR NAVBAR & LONCENG BERFUNGSI ──
+import '../home_page_cust.dart'; 
+import '../../../profile/screens/profil_customer.dart'; 
+import '../Notifikasipage.dart'; 
 
 class SeatSelectionScreen extends StatefulWidget {
   final String namaTampil; 
@@ -20,6 +25,7 @@ class SeatSelectionScreen extends StatefulWidget {
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   List<dynamic> seats = [];
   bool isLoading = true;
+  int _selectedIndex = 0; // Tambahan buat Nav Bar
 
   @override
   void initState() {
@@ -28,23 +34,18 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
   }
 
   Future<void> fetchDataKursi() async {
-    // Ubah URL ke 10.0.2.2 jika ngetes pakai Emulator Android
-    final String url = 'http://localhost/k16_api/get_kursi.php?nama_ps=${widget.namaTampil}';
-
     try {
-      final response = await http.get(Uri.parse(url));
-      if (response.statusCode == 200) {
-        setState(() {
-          seats = json.decode(response.body);
-          isLoading = false;
-        });
-      } else {
-        debugPrint('Gagal mengambil data'); // Mengganti print agar warning hilang
-        setState(() => isLoading = false);
-      }
+      final data = await ApiService.fetchKursi(widget.namaTampil);
+      setState(() {
+        seats = data;
+        isLoading = false;
+      });
     } catch (e) {
-      debugPrint('Error sambungan: $e'); // Mengganti print agar warning hilang
+      debugPrint('Error sambungan: $e'); 
       setState(() => isLoading = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal memuat kursi: $e")));
+      }
     }
   }
 
@@ -55,11 +56,20 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            const SizedBox(height: 16),
-            _buildHeader(),
-            const SizedBox(height: 24),
-            _buildSubHeader(context),
+            // ── HEADER SAMA KAYA HOME ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: _buildHeader(context),
+            ),
+            
+            // ── TOMBOL BACK & JUDUL ──
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: _buildSubHeader(context),
+            ),
             const SizedBox(height: 20),
+            
+            // ── LIST KURSI DINAMIS DARI DATABASE ──
             Expanded(
               child: isLoading 
                   ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -73,54 +83,110 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                           },
                         ),
             ),
-            _buildBottomNav(),
           ],
         ),
+      ),
+      
+      // ── BOTTOM NAVIGATION BAR KONSISTEN ──
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: AppColors.background,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textWhite,
+        currentIndex: _selectedIndex,
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+          if (index == 0) {
+            // Balik ke Home
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => const HomePage()),
+              (route) => false,
+            );
+          } else if (index == 2) {
+            // Pergi ke Profil
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const CustProfilAccount()),
+            );
+          }
+        },
+        showSelectedLabels: false,
+        showUnselectedLabels: false,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: ""),
+          BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: ""),
+        ],
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 26,
-            backgroundColor: AppColors.cardLight,
-            child: Icon(Icons.image, color: Colors.white),
+  // ── HEADER DENGAN LONCENG NOTIFIKASI ──
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            const CircleAvatar(
+              radius: 25,
+              backgroundImage: AssetImage('assets/logo_ksixteen.jpeg'),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)),
+                Text("Lounge App", style: AppStyles.h3Gold.copyWith(fontSize: 14, height: 1.1)),
+              ],
+            ),
+          ],
+        ),
+        Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.primary, width: 1.5),
           ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('K-16', style: AppStyles.h1Gold),
-              Text('Lounge App', style: AppStyles.h3Gold),
-            ],
-          )
-        ],
-      ),
+          child: IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotifikasiPage(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildSubHeader(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-      child: Row(
-        children: [
-          GestureDetector(
-            onTap: () => Navigator.pop(context),
-            child: const Icon(Icons.arrow_circle_left_outlined, color: AppColors.primary, size: 28),
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.primary, width: 2.0),
+            ),
+            child: const Icon(Icons.arrow_back, color: AppColors.primary, size: 16),
           ),
-          const SizedBox(width: 12),
-          Text('Pilih ${widget.namaTampil}', style: AppStyles.h2White),
-        ],
-      ),
+        ),
+        const SizedBox(width: 15),
+        Text('Pilih Unit ${widget.namaTampil}', style: AppStyles.h2White.copyWith(fontSize: 18)),
+      ],
     );
   }
 
   Widget _buildSeatCard(BuildContext context, dynamic item) {
     bool isAvailable = item['status'] == 'Available';
+    int hargaReal = double.tryParse(item['harga'].toString())?.toInt() ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -147,8 +213,9 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(item['fisik_ruangan'], style: AppStyles.labelBold.copyWith(fontSize: 16)),
+                const SizedBox(height: 4),
                 Text(
-                  'Rp. ${double.parse(item['harga'].toString()).toInt()}/jam',
+                  'Rp. $hargaReal /jam',
                   style: AppStyles.bodyGrey.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold),
                 ),
               ],
@@ -164,12 +231,11 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(color: const Color(0xFF66BB6A)),
                   ),
-                  child: Text('Available', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF66BB6A))),
+                  child: Text('Tersedia', style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF66BB6A))),
                 ),
                 const SizedBox(height: 8),
                 GestureDetector(
                   onTap: () {
-                    // PERBAIKAN: Ini sudah membawa parameter SQL lengkap yang diminta halaman 3
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -190,7 +256,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
                       children: [
                         const Icon(Icons.star_border, color: Colors.white, size: 14),
                         const SizedBox(width: 4),
-                        Text('BOOK', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
+                        Text('PILIH', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white)),
                       ],
                     ),
                   ),
@@ -198,26 +264,11 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               ] else ...[
                 Padding(
                   padding: const EdgeInsets.only(top: 8.0),
-                  child: Text('Already Full', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.error)),
+                  child: Text('Sudah Penuh', style: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.error)),
                 ),
               ]
             ],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBottomNav() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      color: AppColors.background,
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          Icon(Icons.home, color: AppColors.textWhite, size: 28),
-          Icon(Icons.access_time, color: AppColors.textGrey, size: 28),
-          Icon(Icons.person_outline, color: AppColors.textGrey, size: 28),
         ],
       ),
     );
