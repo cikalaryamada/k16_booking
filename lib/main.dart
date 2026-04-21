@@ -27,8 +27,14 @@ class MyApp extends StatelessWidget {
       title: 'K-16 Lounge App',
       debugShowCheckedModeBanner: false,
       // ── TEMA BUATAN LU YANG HILANG AKU BALIKIN KE SINI ──
+      // ── TEMA BUATAN LU YANG UDAH DI-UPGRADE JADI SUPER DARK MODE ──
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
+        
+        // 1. KUNCI UTAMA BIAR GA KENA FLASHBANG PUTIH
+        canvasColor: Colors.black, 
+        scaffoldBackgroundColor: const Color(0xFF000000), 
+        
         appBarTheme: AppBarTheme(
           backgroundColor: const Color(0xFF000000),
           centerTitle: false,
@@ -39,13 +45,21 @@ class MyApp extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
         ),
-        scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
+        
+        // 2. KASIH TAU MATERIAL 3 KALAU BACKGROUND KITA FULL HITAM
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFFFCC00),
+          background: Colors.black, 
+          surface: Colors.black,
+        ), 
         useMaterial3: true,
+        
+        // 3. ANIMASI TRANSISI PREMIUM (BEBAS PUTIH)
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: <TargetPlatform, PageTransitionsBuilder>{
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(), 
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            // Pake Zoom / FadeUpwards biar transisinya elegan dan ngga ngegeser kanvas
+            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(), 
+            TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
           },
         ),
       ),

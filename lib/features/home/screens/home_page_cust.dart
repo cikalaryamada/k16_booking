@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Wajib Import
+
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
+import '../../../core/network/api_service.dart'; // Wajib Import API
+
 import '../../profile/screens/profil_customer.dart';
+import 'ps/playstation_booking.dart';
+import 'Notifikasipage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,6 +18,44 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  
+  // ── VARIABEL BUAT NAMPUNG DATA BOOKING ──
+  List<dynamic> _recentBookings = [];
+  bool _isLoadingBooking = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tarikBookingTerbaru();
+  }
+
+  // ── FUNGSI NARIK DATABASE BOOKING ──
+  Future<void> _tarikBookingTerbaru() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String usernameAktif = prefs.getString('username_aktif') ?? '';
+
+    if (usernameAktif.isNotEmpty) {
+      try {
+        final data = await ApiService.fetchNotifikasi(usernameAktif);
+        
+        // Filter: Cuma tampilin yang belum selesai/batal
+        List<dynamic> aktif = data.where((b) {
+          String status = b['status'].toString().toUpperCase();
+          return status == 'MENUNGGU' || status == 'BERLANGSUNG' || status == 'DIKONFIRMASI';
+        }).toList();
+
+        setState(() {
+          // Ambil maksimal 2 data aja biar Home ngga kepanjangan
+          _recentBookings = aktif.take(2).toList(); 
+          _isLoadingBooking = false;
+        });
+      } catch (e) {
+        setState(() => _isLoadingBooking = false);
+      }
+    } else {
+      setState(() => _isLoadingBooking = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +94,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                     child: IconButton(
                       icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotifikasiPage(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -80,17 +131,26 @@ class _HomePageState extends State<HomePage> {
                       subtitle: "PS3, PS4, PS5",
                       icon: Icons.sports_esports_rounded,
                       colorTheme: AppColors.primary,
-                      onTap: () {},
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RentalPlaystationScreen(),
+                          ),
+                        );
+                      },
                     ),
                   ),
                   const SizedBox(width: 15),
                   Expanded(
                     child: _buildServiceCard(
                       title: "Karaoke",
-                      subtitle: "Luxury, Premiere, Exclusive",
+                      subtitle: "Luxury, Luxury+, Premiere",
                       icon: Icons.mic_rounded,
                       colorTheme: const Color(0xFFE88A34), 
-                      onTap: () {},
+                      onTap: () {
+                        // Tambahin navigasi ke Karaoke nanti di sini
+                      },
                     ),
                   ),
                 ],
@@ -104,7 +164,15 @@ class _HomePageState extends State<HomePage> {
                 children: [
                   Text("Booking Terbaru", style: AppStyles.h2White),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Tombol Lihat Semua ngarah ke Notifikasi/History
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const NotifikasiPage(),
+                        ),
+                      );
+                    },
                     child: Text("Lihat Semua", style: AppStyles.bodyWhite.copyWith(color: AppColors.primary)),
                   ),
                 ],
@@ -112,22 +180,33 @@ class _HomePageState extends State<HomePage> {
               
               const SizedBox(height: 15),
 
-              // ── 5. AREA KOSONG (Siap buat Database) ──
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 40),
-                  child: Column(
-                    children: [
-                      Icon(Icons.history_rounded, color: AppColors.textMuted, size: 50),
-                      const SizedBox(height: 10),
-                      Text(
-                        "Belum ada booking aktif saat ini",
-                        style: AppStyles.bodyGrey,
+              // ── 5. AREA DINAMIS DATABASE BOOKING ──
+              _isLoadingBooking
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(20.0),
+                        child: CircularProgressIndicator(color: AppColors.primary),
                       ),
-                    ],
-                  ),
-                ),
-              ),
+                    )
+                  : _recentBookings.isEmpty
+                      ? Center(
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 40),
+                            child: Column(
+                              children: [
+                                const Icon(Icons.history_rounded, color: AppColors.textMuted, size: 50),
+                                const SizedBox(height: 10),
+                                Text(
+                                  "Belum ada booking aktif saat ini",
+                                  style: AppStyles.bodyGrey,
+                                ),
+                              ],
+                            ),
+                          ),
+                        )
+                      : Column(
+                          children: _recentBookings.map((booking) => _buildBookingCard(booking)).toList(),
+                        ),
             ],
           ),
         ),
@@ -142,9 +221,12 @@ class _HomePageState extends State<HomePage> {
         onTap: (index) {
           setState(() => _selectedIndex = index);
           
-          // Navigasi ke Profil Customer jika tombol profil (index 2) diklik
-          if (index == 2) {
-            
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const NotifikasiPage()),
+            );
+          } else if (index == 2) {
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => const CustProfilAccount()),
@@ -158,6 +240,73 @@ class _HomePageState extends State<HomePage> {
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: ""),
+        ],
+      ),
+    );
+  }
+
+  // ── WIDGET KARTU BOOKING DINAMIS ──
+  Widget _buildBookingCard(dynamic data) {
+    String status = data['status'].toString().toUpperCase();
+    String namaTampil = data['nama_tampil'];
+    String jadwal = "${data['tanggal']} | ${data['jam_mulai']} - ${data['jam_selesai']} WIB";
+
+    Color statusColor;
+    if (status == "BERLANGSUNG" || status == "DIKONFIRMASI") {
+      statusColor = const Color(0xFF34C759); // Hijau
+    } else {
+      statusColor = AppColors.primary; // Kuning
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.cardDark,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primaryDark),
+      ),
+      child: Row(
+        children: [
+          // Ikon PS/Karaoke
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: statusColor.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(
+              namaTampil.contains("Room") ? Icons.mic : Icons.sports_esports, 
+              color: statusColor, 
+              size: 24
+            ),
+          ),
+          const SizedBox(width: 15),
+          
+          // Detail Text
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(namaTampil, style: AppStyles.labelBold.copyWith(fontSize: 15)),
+                const SizedBox(height: 4),
+                Text(jadwal, style: AppStyles.bodyGrey.copyWith(fontSize: 11)),
+              ],
+            ),
+          ),
+          
+          // Label Status
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              border: Border.all(color: statusColor),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              status, 
+              style: TextStyle(color: statusColor, fontSize: 10, fontWeight: FontWeight.bold)
+            ),
+          ),
         ],
       ),
     );

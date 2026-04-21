@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Wajib Import SharedPreferences
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
-// Import halaman home customer & login
+import '../../../core/network/api_service.dart'; // Wajib Import API
+
 import '../../home/screens/home_page_cust.dart';
 import '../../auth/screens/login.dart';
 
 // ============================================================================
-// ── 1. HALAMAN UTAMA: PROFIL CUSTOMER (DESAIN ADMIN, ISI CUSTOMER) ──
+// ── 1. HALAMAN UTAMA: PROFIL CUSTOMER ──
 // ============================================================================
 class CustProfilAccount extends StatefulWidget {
   const CustProfilAccount({super.key});
@@ -18,9 +20,47 @@ class CustProfilAccount extends StatefulWidget {
 class _CustProfilAccountState extends State<CustProfilAccount> {
   int _selectedIndex = 2; // Default di Profil
 
-  // Data statis profil customer
-  final String _namaLengkap = 'Nama admin Ex. Budi';
-  final String _username = 'Username Ex. Admin1';
+  // Variabel Dinamis
+  String _namaLengkap = 'Loading...';
+  String _username = 'Loading...';
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tarikDataProfil();
+  }
+
+  // ── FUNGSI NARIK DATA BERDASARKAN SIAPA YANG LOGIN ──
+  Future<void> _tarikDataProfil() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String usernameAktif = prefs.getString('username_aktif') ?? '';
+
+    if (usernameAktif.isEmpty) {
+      setState(() {
+        _namaLengkap = 'Sesi Berakhir';
+        _username = 'Sesi Berakhir';
+        _isLoading = false;
+      });
+      return;
+    }
+
+    final result = await ApiService.fetchProfile(usernameAktif); 
+
+    if (result['status'] == 'success') {
+      setState(() {
+        _namaLengkap = result['data']['nama_lengkap'];
+        _username = result['data']['username'];
+        _isLoading = false;
+      });
+    } else {
+      setState(() { 
+        _namaLengkap = 'Gagal memuat data';
+        _username = 'Gagal memuat data';
+        _isLoading = false; 
+      });
+    }
+  }
 
   // ── Dialog Logout ──
   void _showLogoutDialog() {
@@ -82,16 +122,17 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          // 1. Tutup pop-up dialog dulu
-                          Navigator.of(context).pop();
+                        onPressed: () async {
+                          // ── HAPUS KTP DARI HP BIAR AMAN ──
+                          SharedPreferences prefs = await SharedPreferences.getInstance();
+                          await prefs.clear();
+
+                          if (!context.mounted) return;
                           
-                          // 2. Munculin notifikasi sukses
+                          Navigator.of(context).pop();
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(content: Text('Berhasil logout')),
                           );
-                          
-                          // 3. Pindah ke HalamanLogin & HAPUS semua riwayat halaman biar ga bisa di-back
                           Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(builder: (context) => const HalamanLogin()),
@@ -122,7 +163,9 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isLoading 
+        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        : SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -143,7 +186,7 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
               const SizedBox(height: 14),
 
               // Title Name
-              Text('Customer name', style: AppStyles.h2White),
+              Text(_namaLengkap, style: AppStyles.h2White),
               const SizedBox(height: 24),
 
               // Profil Header
@@ -164,7 +207,7 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
               ),
               const SizedBox(height: 22),
 
-              // ── Field Murni Punya Customer ──
+              // ── Field Dinamis ──
               _buildStaticField(label: 'Nama Lengkap', value: _namaLengkap),
               const SizedBox(height: 18),
               _buildStaticField(label: 'Username', value: _username),
@@ -290,7 +333,6 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
   }
 }
 
-
 // ============================================================================
 // ── 2. HALAMAN EDIT PROFIL CUSTOMER ──
 // ============================================================================
@@ -327,7 +369,7 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
               ),
               const SizedBox(height: 14),
 
-              Text('Customer name', style: AppStyles.h2White),
+              Text('Edit Profile', style: AppStyles.h2White),
               const SizedBox(height: 24),
 
               // Tombol Kembali
@@ -373,7 +415,7 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
                   ),
                   onPressed: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text("Profil berhasil diperbarui!")),
+                      const SnackBar(content: Text("Fitur update profil belum tersedia!")),
                     );
                     Navigator.pop(context);
                   },
