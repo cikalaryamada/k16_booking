@@ -9,6 +9,9 @@ import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
 import 'features/home/screens/home_page_admin.dart';
 import 'features/home/screens/manage_booking_page.dart';
+import 'features/home/screens/Notifikasipage.dart';
+import 'features/home/screens/BookingHistoryPage.dart';
+
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -49,8 +52,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: const SplashScreen
-      (), 
+      home: BookingHistoryPage(),
     );
   }
 }
