@@ -2,9 +2,14 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class ApiService {
-  // Ganti dengan IP laptop atau 10.0.2.2 (jika pakai emulator)
-  // Pastikan nama folder belakangnya sesuai sama folder XAMPP lu (k16_api atau k16_booking)
-  static const String baseUrl = "http://localhost/k16_api";
+  // Biar gampang, nyalakan salah satu baseUrl yang mau dipakai saat testing:
+  
+  // Opsi 1: Punya Kamu (Localhost XAMPP)
+  static const String baseUrl = "http://localhost/k16_booking"; 
+  
+  // Opsi 2: Punya Temanmu (InfinityFree / IP Spesifik)
+  // static const String baseUrl = "http://172.16.115.115/k16_booking";
+  // static const String baseUrl = "https://ksixteenbooking.kesug.com";
 
   // ==========================================================
   // 1. FUNGSI REGISTER
@@ -16,7 +21,7 @@ class ApiService {
         body: {
           'nama_lengkap': nama,
           'username': username,
-          'password': password, 
+          'password': password, // Akan masuk ke kolom password_hash
         },
       );
 
@@ -33,6 +38,7 @@ class ApiService {
   // ==========================================================
   // 2. FUNGSI KATALOG (Tarik harga PS / Karaoke)
   // ==========================================================
+  // Tetap pakai parameter (String jenis) buatanmu karena lebih fleksibel
   static Future<List<dynamic>> fetchKatalog(String jenis) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/get_katalog.php?jenis=$jenis'));
@@ -41,12 +47,13 @@ class ApiService {
         final Map<String, dynamic> responseData = json.decode(response.body);
         
         if (responseData['status'] == 'success') {
+          // Mengembalikan list yang berisi: nama_tampil, harga, fisik_ruangan, dll
           return responseData['data']; 
         } else {
           throw Exception(responseData['message']);
         }
       } else {
-        throw Exception('Gagal terhubung ke XAMPP');
+        throw Exception('Gagal terhubung ke server database');
       }
     } catch (e) {
       throw Exception('Error: $e');
@@ -54,7 +61,7 @@ class ApiService {
   }
 
   // ==========================================================
-  // 3. FUNGSI PROFIL (INI DIA OBAT PENYAKIT MERAHNYA!)
+  // 3. FUNGSI PROFIL
   // ==========================================================
   static Future<Map<String, dynamic>> fetchProfile(String username) async {
     try {
@@ -86,7 +93,7 @@ class ApiService {
           throw Exception(responseData['message']);
         }
       } else {
-        throw Exception('Gagal terhubung ke XAMPP');
+        throw Exception('Gagal terhubung ke server');
       }
     } catch (e) {
       throw Exception('Error: $e');

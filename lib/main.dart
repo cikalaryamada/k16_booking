@@ -9,16 +9,11 @@ import 'features/home/screens/home_page_cust.dart';
 import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
 import 'features/home/screens/home_page_admin.dart';
+
+// Gabungan import dari kamu dan temanmu
 import 'features/home/screens/admin/reports_page.dart';
 import 'features/home/screens/karaoke/home_karaoke.dart';
-
-/* void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
-  );
-  runApp(const MyApp());
-} */
+import 'features/home/screens/manage_booking_page.dart';
 
 void main() async {
   // Pastikan binding sudah siap
@@ -26,7 +21,7 @@ void main() async {
 
   // Inisialisasi data bahasa sebelum aplikasi dijalankan
   await initializeDateFormatting('id_ID', null).then((_) {
-    runApp(const MyApp()); // Ganti MyApp dengan nama class utama aplikasimu
+    runApp(const MyApp()); 
   });
 }
 
@@ -38,7 +33,6 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'K-16 Lounge App',
       debugShowCheckedModeBanner: false,
-      // ── TEMA BUATAN LU YANG HILANG AKU BALIKIN KE SINI ──
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
         appBarTheme: AppBarTheme(
@@ -51,7 +45,7 @@ class MyApp extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
         ),
-        scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
+        scaffoldBackgroundColor: const Color(0xFF000000), 
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
         pageTransitionsTheme: const PageTransitionsTheme(
@@ -61,7 +55,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: const Dashboard(), 
+      home: const AdminDashboard(), 
     );
   }
 }

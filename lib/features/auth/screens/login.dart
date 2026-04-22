@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http; 
 import 'dart:convert'; 
-
-// Sesuaikan letak import folder kamu jika ada yang merah
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import 'register_page.dart';
-
-// Import halaman home customer (Agar setelah login bisa langsung pindah ke sini)
 import '../../home/screens/home_page_cust.dart'; 
 
 class HalamanLogin extends StatefulWidget {
