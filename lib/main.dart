@@ -11,6 +11,7 @@ import 'features/home/screens/home_page_admin.dart';
 import 'features/home/screens/manage_booking_page.dart';
 import 'features/home/screens/Notifikasipage.dart';
 import 'features/home/screens/BookingHistoryPage.dart';
+import 'features/home/screens/karaoke/karaoke_room_page.dart';
 
 
 void main() {
@@ -52,7 +53,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: BookingHistoryPage(),
+      home: KaraokeRoomScreen(),
     );
   }
 }
