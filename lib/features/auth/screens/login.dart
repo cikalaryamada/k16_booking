@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http; 
+import 'dart:convert'; 
+
+// Sesuaikan letak import folder kamu jika ada yang merah
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import 'register_page.dart';
 
+// Import halaman home customer (Agar setelah login bisa langsung pindah ke sini)
+import '../../home/screens/home_page_cust.dart'; 
+
 class HalamanLogin extends StatefulWidget {
-  const HalamanLogin({Key? key}) : super(key: key);
+  const HalamanLogin({super.key}); // Diperbarui agar lebih rapi (super.key)
 
   @override
   State<HalamanLogin> createState() => _HalamanLoginState();
@@ -12,6 +19,7 @@ class HalamanLogin extends StatefulWidget {
 
 class _HalamanLoginState extends State<HalamanLogin> {
   bool _passwordVisible = false;
+  bool _isLoading = false; // Variabel untuk mengatur animasi loading
 
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -104,11 +112,12 @@ class _HalamanLoginState extends State<HalamanLogin> {
     );
   }
 
-  // ── FUNGSI VALIDASI LOGIN ──
-  void _validateLogin() {
+  // ── FUNGSI VALIDASI LOGIN DARI DATABASE ──
+  Future<void> _validateLogin() async {
     String username = _usernameController.text.trim();
     String password = _passwordController.text;
 
+    // 1. Cek form kosong
     if (username.isEmpty || password.isEmpty) {
       _showErrorDialog(
         "Form Tidak Lengkap",
@@ -117,15 +126,76 @@ class _HalamanLoginState extends State<HalamanLogin> {
       return; 
     }
 
-    if (username != "juragan" || password != "12345678") {
-      _showErrorDialog(
-        "Login Gagal",
-        "Username belum terdaftar atau password yang Anda masukkan salah.",
-      );
-      return;
-    }
+    // Menyalakan animasi loading
+    setState(() {
+      _isLoading = true;
+    });
 
-    debugPrint("Validasi sukses! Lanjut masuk ke aplikasi.");
+    // URL API Login (Ubah localhost menjadi 10.0.2.2 jika di Emulator Android)
+    final String url = 'http://localhost/k16_api/login.php';
+
+    try {
+      // 2. Mengirim data POST ke API PHP
+      final response = await http.post(
+        Uri.parse(url),
+        body: {
+          'username': username,
+          'password': password,
+        },
+      );
+
+      // 3. Membaca balasan dari Server
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+
+        if (data['status'] == 'success') {
+          // LOGIN BERHASIL
+          debugPrint("Login sukses: ${data['message']}");
+          
+          if (!mounted) return;
+          // Memunculkan pesan sukses kecil di bawah layar
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Selamat datang, ${data['data']['nama_lengkap']}!'),
+              backgroundColor: const Color(0xFF66BB6A),
+            ),
+          );
+
+          // PENTING: Arahkan Halaman Berdasarkan Role Database
+          int roleId = int.parse(data['data']['role'].toString());
+          if (roleId == 1) {
+            // TODO: Arahkan ke halaman Admin (nanti jika halaman admin sudah ada)
+            // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HalamanAdmin()));
+          } else {
+            // ARAHKAN KE HALAMAN CUSTOMER (HomePage)
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (context) => const HomePage()),
+            );
+          }
+
+        } else {
+          // LOGIN GAGAL (Password Salah / Username tidak ada)
+          if (mounted) _showErrorDialog("Login Gagal", data['message']);
+        }
+      } else {
+        if (mounted) _showErrorDialog("Error Server", "Terjadi kesalahan pada server (Error ${response.statusCode})");
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog(
+          "Error Koneksi", 
+          "Gagal terhubung ke database. Pastikan XAMPP menyala dan URL benar.\n\nDetail: $e"
+        );
+      }
+    } finally {
+      // Mematikan animasi loading setelah proses selesai (berhasil/gagal)
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -176,7 +246,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withOpacity(0.2),
+                      color: AppColors.primary.withValues(alpha: 0.2), // Diperbarui agar tidak warning
                       blurRadius: 15,
                       spreadRadius: 2,
                     ),
@@ -191,7 +261,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         hintText: 'Masukkan username anda',
-                        hintStyle: TextStyle(color: AppColors.textGrey),
+                        hintStyle: const TextStyle(color: AppColors.textGrey),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -206,7 +276,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       obscureText: !_passwordVisible,
                       decoration: InputDecoration(
                         hintText: 'Masukkan password anda',
-                        hintStyle: TextStyle(color: AppColors.textGrey),
+                        hintStyle: const TextStyle(color: AppColors.textGrey),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -225,7 +295,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                     ),
                     const SizedBox(height: 35),
 
-                    // Button Login 
+                    // Button Login (Dengan kondisi Loading)
                     Center(
                       child: SizedBox(
                         width: 200, 
@@ -236,8 +306,14 @@ class _HalamanLoginState extends State<HalamanLogin> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                             side: const BorderSide(color: AppColors.primary, width: 1.5),
                           ),
-                          onPressed: () => _validateLogin(),
-                          child: Text('Login', style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),
+                          onPressed: _isLoading ? null : () => _validateLogin(),
+                          child: _isLoading 
+                            ? const SizedBox(
+                                height: 20, 
+                                width: 20, 
+                                child: CircularProgressIndicator(color: AppColors.primary, strokeWidth: 3)
+                              )
+                            : Text('Login', style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),
                         ),
                       ),
                     ),
