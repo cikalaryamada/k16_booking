@@ -10,6 +10,7 @@ import '../../../../core/network/api_service.dart';
 import '../home_page_cust.dart'; 
 import '../../../profile/screens/profil_customer.dart'; 
 import '../Notifikasipage.dart'; 
+import '../BookingHistoryPage.dart'; 
 
 class BookingScheduleScreen extends StatefulWidget {
   final String idTarif;
@@ -74,12 +75,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     setState(() {
       jamTerbooking = booked;
       _jamTerpilih = null; 
-      _durasiJam = 1; // Reset durasi tiap ganti hari
+      _durasiJam = 1; 
       _isLoadingJadwal = false;
     });
   }
 
-  // ── LOGIKA ANTI TABRAKAN JADWAL ──
   bool _isDurasiAman(String jamMulai, int durasiCek) {
     int startInt = int.parse(jamMulai.split(":")[0]);
     for (int i = 0; i < durasiCek; i++) {
@@ -92,13 +92,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     return true;
   }
 
-  // ── FIX: LOGIKA WARNA KOTAK BIAR NGGA NGELILIT KE PAGI ──
   bool _isJamMasukDurasi(String jamKotak) {
     if (_jamTerpilih == null) return false;
     int startInt = int.parse(_jamTerpilih!.split(":")[0]);
     int kotakInt = int.parse(jamKotak.split(":")[0]);
     
-    // Hanya warnai kotak yang jamnya LEBIH BESAR sama dengan jam mulai
     if (kotakInt >= startInt && kotakInt < startInt + _durasiJam) {
       return true;
     }
@@ -118,9 +116,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
 
     String tglFormatSql = DateFormat('yyyy-MM-dd').format(_tanggalTerpilih!);
     
+    // ── JURUS ANTI MESIN WAKTU ──
     int jamInt = int.parse(_jamTerpilih!.split(":")[0]);
-    int jamSelesaiInt = (jamInt + _durasiJam) % 24; 
-    String jamSelesai = "${jamSelesaiInt.toString().padLeft(2, '0')}:00";
+    int hitungSelesai = jamInt + _durasiJam;
+    // Kalau selesainya pas angka 24, kita tulis "24:00" biar logis
+    String jamSelesai = hitungSelesai == 24 ? "24:00" : "${(hitungSelesai % 24).toString().padLeft(2, '0')}:00";
     
     double totalHarga = widget.hargaPerJam * _durasiJam; 
 
@@ -146,7 +146,6 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     }
   }
 
-  // ── POP UP MAHAL SAMA PERSIS ──
   void _showSuccessDialog(BuildContext context, String noPesanan, String namaPelanggan, String jamMain) {
     String tglIndo = DateFormat('dd/MM/yyyy').format(_tanggalTerpilih!);
     
@@ -214,7 +213,7 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
-                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const NotifikasiPage())),
+                    onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage())),
                     child: Text('LIHAT RIWAYAT PESANAN', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFFACC15))),
                   ),
                 ),
@@ -260,7 +259,6 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                     Container(height: 3, width: double.infinity, color: AppColors.primary),
                     const SizedBox(height: 20),
                     
-                    // ── PILIH DURASI MAIN (SUDAH DIKUNCI) ──
                     _buildDurasiSelector(),
                     const SizedBox(height: 20),
 
@@ -284,7 +282,6 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     );
   }
 
-  // ── WIDGET DURASI SELECTOR (FIXED) ──
   Widget _buildDurasiSelector() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -307,13 +304,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
             IconButton(
               icon: Icon(Icons.add_circle_outline, color: _jamTerpilih != null ? AppColors.primary : Colors.grey, size: 28),
               onPressed: () {
-                // 1. Cek udah pilih jam belum?
                 if (_jamTerpilih == null) {
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Pilih jadwal jam di bawah terlebih dahulu!")));
                   return;
                 }
 
-                // 2. Cek apakah kalau nambah durasi bakal tembus jam 00:00 keesokan harinya?
                 int startInt = int.parse(_jamTerpilih!.split(":")[0]);
                 int maxDurasiHariIni = 24 - startInt;
 
@@ -324,9 +319,8 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
 
                 setState(() {
                   _durasiJam++;
-                  // 3. Cek apakah kalau ditambah malah nabrak jadwal orang lain?
                   if (!_isDurasiAman(_jamTerpilih!, _durasiJam)) {
-                    _durasiJam--; // Batalin nambah durasi
+                    _durasiJam--; 
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Durasi nabrak jadwal yang udah di-booking orang!")));
                   }
                 });
@@ -354,7 +348,10 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
         ),
         Container(
           decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
-          child: IconButton(icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage()))),
+          child: IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite), 
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage()))
+          ),
         ),
       ],
     );
@@ -407,7 +404,6 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     );
   }
 
-  // ── GRID JAM DENGAN LOGIKA RESET DURASI ──
   Widget _buildTimeGrid() {
     return Wrap(
       spacing: 12, runSpacing: 12,
@@ -423,7 +419,7 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
           onTap: isBooked ? null : () {
             setState(() {
               _jamTerpilih = jam;
-              _durasiJam = 1; // RESET DURASI TIAP GANTI JAM BIAR AMAN!
+              _durasiJam = 1; 
             });
           },
           child: Container(
@@ -438,8 +434,11 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
   }
 
   Widget _buildSummaryCard() {
+    // ── JURUS ANTI MESIN WAKTU ──
     int jamAwal = int.parse(_jamTerpilih!.split(":")[0]);
-    String jamSelesai = "${(jamAwal + _durasiJam) % 24}".padLeft(2, '0') + ":00";
+    int hitungSelesai = jamAwal + _durasiJam;
+    String jamSelesai = hitungSelesai == 24 ? "24:00" : "${(hitungSelesai % 24).toString().padLeft(2, '0')}:00";
+    
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(color: AppColors.cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primaryDark)),
@@ -499,8 +498,13 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
       currentIndex: _selectedIndex,
       onTap: (index) {
         setState(() => _selectedIndex = index);
-        if (index == 0) Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage()), (route) => false);
-        else if (index == 2) Navigator.push(context, MaterialPageRoute(builder: (context) => const CustProfilAccount()));
+        if (index == 0) {
+          Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage()), (route) => false);
+        } else if (index == 1) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage()));
+        } else if (index == 2) {
+          Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CustProfilAccount()));
+        }
       },
       showSelectedLabels: false, showUnselectedLabels: false, type: BottomNavigationBarType.fixed,
       items: const [

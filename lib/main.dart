@@ -9,9 +9,15 @@ import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
 import 'features/home/screens/home_page_admin.dart';
 import 'features/home/screens/admin/manage_booking_page.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() {
+// ── 2. TAMBAHIN 'async' DI FUNGSI MAIN ──
+void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // ── 3. MANTRA PEMANGGIL KALENDER INDONESIA ──
+  await initializeDateFormatting('id_ID', null); 
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );

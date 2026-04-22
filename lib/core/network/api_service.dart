@@ -154,4 +154,28 @@ class ApiService {
       return {'status': 'error', 'message': 'Error: $e'};
     }
   }
+
+  // ==========================================================
+  // 8. FUNGSI UPDATE PROFIL CUSTOMER
+  // ==========================================================
+  static Future<Map<String, dynamic>> updateProfile(String oldUsername, String nama, String newUsername, String password) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/update_profil.php'),
+        body: {
+          'old_username': oldUsername,
+          'nama_lengkap': nama,
+          'new_username': newUsername,
+          'password': password,
+        },
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {'status': 'error', 'message': 'Gagal terhubung ke server'};
+      }
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error koneksi: $e'};
+    }
+  }
 }
