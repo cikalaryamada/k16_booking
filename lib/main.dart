@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: BookingHistoryPage(),
+      home: SplashScreen(),
     );
   }
 }
