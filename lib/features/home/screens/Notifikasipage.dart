@@ -189,9 +189,9 @@ class _NotifikasiPageState extends State<NotifikasiPage> {
   // ── MESIN PENENTU WARNA & TEKS OTOMATIS ──
   Widget _buildDynamicNotificationCard(dynamic data) {
     String status = data['status'].toString().toUpperCase();
-    String namaTampil = data['nama_tampil'] ?? '-';
+    String namaTampil = data['nama_tampil'];
     String jam = "${data['jam_mulai']} - ${data['jam_selesai']}";
-    String tanggal = data['tanggal'] ?? '-';
+    String tanggal = data['tanggal'];
 
     IconData icon; Color iconColor; Color cardColor; 
     String judul; String pesan;
