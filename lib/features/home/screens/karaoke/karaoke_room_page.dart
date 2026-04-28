@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Import package intl
+import 'package:google_fonts/google_fonts.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_styles.dart';
 import '../../../../core/network/api_service.dart';
 
+// ── IMPORT HALAMAN LAIN BIAR NAVBAR & LONCENG BERFUNGSI ──
+import '../home_page_cust.dart'; 
+import '../../../profile/screens/profil_customer.dart'; 
+import '../Notifikasipage.dart'; 
+import '../BookingHistoryPage.dart'; 
+import '../ps/seat_playstation.dart'; 
+
 class KaraokeRoomScreen extends StatefulWidget {
-  // PERBAIKAN 1: Menggunakan super.key (use_super_parameters)
   const KaraokeRoomScreen({super.key});
 
   @override
@@ -13,30 +20,27 @@ class KaraokeRoomScreen extends StatefulWidget {
 }
 
 class _KaraokeRoomScreenState extends State<KaraokeRoomScreen> {
-  late Future<List<dynamic>> _katalogFuture;
+  List<dynamic> karaokeRooms = [];
+  bool isLoading = true;
+  int _selectedIndex = 0; 
 
   @override
   void initState() {
     super.initState();
-    // Memanggil fungsi fetchKatalog dari api_service.dart
-    _katalogFuture = ApiService.get_katalog(),
-    }
-  /// Fungsi untuk mengubah angka (String/Double) menjadi format Rupiah
-  /// Contoh: 30000 -> Rp 30.000
-  String formatRupiah(dynamic harga) {
-    num nominal = 0;
-    if (harga is String) {
-      nominal = num.tryParse(harga) ?? 0;
-    } else if (harga is num) {
-      nominal = harga;
-    }
+    _tarikDataKaraoke();
+  }
 
-    final formatter = NumberFormat.currency(
-      locale: 'id',
-      symbol: 'Rp ',
-      decimalDigits: 0,
-    );
-    return formatter.format(nominal);
+  Future<void> _tarikDataKaraoke() async {
+    try {
+      final data = await ApiService.fetchKatalog('karaoke');
+      setState(() {
+        karaokeRooms = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() { isLoading = false; });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal memuat data: $e")));
+    }
   }
 
   @override
@@ -46,37 +50,27 @@ class _KaraokeRoomScreenState extends State<KaraokeRoomScreen> {
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
-            _buildTitleBar(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+              child: _buildHeader(context),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: _buildTitleBar(context),
+            ),
+            const SizedBox(height: 20),
             Expanded(
-              child: FutureBuilder<List<dynamic>>(
-                future: _katalogFuture,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primary),
-                    );
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Gagal memuat data', style: AppStyles.bodyWhite),
-                    );
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return Center(
-                      child: Text('Ruangan tidak tersedia', style: AppStyles.bodyWhite),
-                    );
-                  }
-
-                  final dataRuangan = snapshot.data!;
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: dataRuangan.length,
-                    itemBuilder: (context, index) {
-                      final item = dataRuangan[index];
-                      return _buildRoomItem(item);
-                    },
-                  );
-                },
-              ),
+              child: isLoading 
+                  ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+                  : karaokeRooms.isEmpty
+                      ? Center(child: Text("Data Karaoke Kosong", style: AppStyles.bodyWhite))
+                      : ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          itemCount: karaokeRooms.length,
+                          itemBuilder: (context, index) {
+                            return _buildRoomItem(context, karaokeRooms[index]);
+                          },
+                        ),
             ),
           ],
         ),
@@ -85,170 +79,171 @@ class _KaraokeRoomScreenState extends State<KaraokeRoomScreen> {
     );
   }
 
-  Widget _buildRoomItem(Map<String, dynamic> item) {
-    // Logika untuk membedakan tampilan Premiere Room vs Luxury Room
-    bool isPremiere = item['nama_tampil'].toString().toLowerCase().contains('premiere');
+  // ── DESAIN KEMBALI KE AWAL (KONSISTEN DENGAN HALAMAN PS) ──
+  Widget _buildRoomItem(BuildContext context, dynamic item) {
+    bool isPremiere = item['name'].toString().toLowerCase().contains('premiere');
+    bool isLuxuryPlus = item['name'].toString().toLowerCase().contains('luxury+');
+    
+    int jumlahKursi = int.tryParse(item['jumlah_kursi'].toString()) ?? 0;
+    bool isAvailable = jumlahKursi > 0;
+
+    String kapasitas = isPremiere ? "Maks. 8 Orang" : isLuxuryPlus ? "Maks. 6 Orang" : "Maks. 4 Orang";
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.cardDark,
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: AppColors.primary, width: 1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.primaryDark),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Icon Mic Box
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  // PERBAIKAN 2: Mengganti withOpacity menjadi withValues
-                  color: AppColors.cardLight.withValues(alpha: 0.3), 
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.cardLight),
+                  border: Border.all(color: AppColors.primaryDark),
                 ),
-                child: const Icon(Icons.mic, color: AppColors.primary, size: 30),
+                child: const Icon(Icons.mic_external_on_rounded, color: AppColors.primary, size: 28),
               ),
-              const SizedBox(width: 15),
+              const SizedBox(width: 16),
               
-              // Detail Teks
+              // Detail Teks Utama
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(item['nama_tampil'], style: AppStyles.h2White),
-                    if (isPremiere) ...[
-                      Row(
+                    Text(item['name'], style: AppStyles.labelBold),
+                    const SizedBox(height: 2),
+                    RichText(
+                      text: TextSpan(
+                        text: item['price'],
+                        style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
                         children: [
-                          const Icon(Icons.groups, color: AppColors.textGrey, size: 16),
-                          const SizedBox(width: 5),
-                          Text('All Include', style: AppStyles.bodyGrey),
+                          TextSpan(text: '/jam', style: AppStyles.bodyGrey.copyWith(fontSize: 13)),
                         ],
                       ),
-                      const SizedBox(height: 5),
-                      Wrap(
-                        spacing: 5,
-                        children: [
-                          _tagMini('Premium Sound'),
-                          _tagMini('4 Mic'),
-                          _tagMini('Neon Light'),
-                        ],
-                      ),
-                    ],
-                    const SizedBox(height: 10),
-                    // Status Available
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.green,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text('Available', style: AppStyles.labelBold.copyWith(fontSize: 12)),
                     ),
                   ],
                 ),
               ),
 
-              // Tombol Book (Untuk Luxury Room posisi di samping)
-              if (!isPremiere) _buildBookButton(),
+              // LABEL KETERSEDIAAN
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: isAvailable ? const Color(0xFF66BB6A) : AppColors.error),
+                ),
+                child: Text(
+                  isAvailable ? 'Tersedia $jumlahKursi Ruang' : 'Penuh',
+                  style: GoogleFonts.poppins(
+                    fontSize: 12, 
+                    fontWeight: FontWeight.w600, 
+                    color: isAvailable ? const Color(0xFF66BB6A) : AppColors.error
+                  ),
+                ),
+              ),
             ],
           ),
 
-          // Baris Harga & Tombol Book khusus Premiere (di bawah)
-          if (isPremiere) ...[
-            const SizedBox(height: 15),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                RichText(
-                  text: TextSpan(
-                    text: formatRupiah(item['harga']), // Menggunakan intl
-                    style: AppStyles.h3Gold.copyWith(fontSize: 20),
-                    children: [
-                      TextSpan(
-                        text: '/jam',
-                        style: AppStyles.bodyGrey,
-                      ),
-                    ],
-                  ),
+          // ── TAGS FASILITAS (DIPOLES DIKIT BIAR RAPI) ──
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildMiniTag(kapasitas, Icons.groups_rounded),
+              _buildMiniTag("Smart TV", Icons.tv_rounded),
+              if (isPremiere || isLuxuryPlus) _buildMiniTag("Neon Light", Icons.lightbulb_outline),
+              if (isPremiere) _buildMiniTag("VIP Sound", Icons.speaker_rounded),
+            ],
+          ),
+          
+          // ── TOMBOL BOOK NOW FULL WIDTH KAYA DI PS ──
+          if (isAvailable) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryDark,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                _buildBookButton(),
-              ],
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SeatSelectionScreen(namaTampil: item['name']),
+                    ),
+                  );
+                },
+                child: Text('BOOK NOW', style: AppStyles.buttonTextWhite),
+              ),
             ),
-          ],
+          ]
         ],
       ),
     );
   }
 
-  Widget _tagMini(String text) {
+  Widget _buildMiniTag(String text, IconData icon) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: Colors.black45,
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(text, style: AppStyles.bodyGrey.copyWith(fontSize: 10)),
-    );
-  }
-
-  Widget _buildBookButton() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(25),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.primaryDark.withOpacity(0.5)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.star_border, color: AppColors.background, size: 18),
+          Icon(icon, color: AppColors.textGrey, size: 12),
           const SizedBox(width: 4),
-          Text('BOOK', style: AppStyles.labelBold.copyWith(color: AppColors.background)),
+          Text(text, style: AppStyles.bodyGrey.copyWith(fontSize: 10, color: AppColors.textWhite)),
         ],
       ),
     );
   }
 
-  // Header & Title UI (Sesuai Desain)
-  Widget _buildHeader() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          const CircleAvatar(
-            radius: 25,
-            backgroundColor: AppColors.primary,
-            child: Icon(Icons.person, color: Colors.black),
+  Widget _buildHeader(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Row(
+          children: [
+            const CircleAvatar(radius: 25, backgroundImage: AssetImage('assets/logo_ksixteen.jpeg')),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)), Text("Lounge App", style: AppStyles.h3Gold.copyWith(fontSize: 14, height: 1.1))],
+            ),
+          ],
+        ),
+        Container(
+          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
+          child: IconButton(
+            icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite), 
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage()))
           ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('K-16', style: AppStyles.h1Gold),
-              Text('Lounge App', style: AppStyles.h1Gold),
-            ],
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
-  Widget _buildTitleBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          const Icon(Icons.arrow_circle_left_outlined, color: AppColors.primary, size: 35),
-          const SizedBox(width: 10),
-          Text('Karaoke Room', style: AppStyles.h2White.copyWith(fontSize: 24)),
-        ],
-      ),
+  Widget _buildTitleBar(BuildContext context) {
+    return Row(
+      children: [
+        GestureDetector(onTap: () => Navigator.pop(context), child: Container(padding: const EdgeInsets.all(4), decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 2.0)), child: const Icon(Icons.arrow_back, color: AppColors.primary, size: 16))),
+        const SizedBox(width: 15),
+        Expanded(child: Text('Karaoke Room', style: AppStyles.h2White.copyWith(fontSize: 18), overflow: TextOverflow.ellipsis)),
+      ],
     );
   }
 
@@ -256,13 +251,20 @@ class _KaraokeRoomScreenState extends State<KaraokeRoomScreen> {
     return BottomNavigationBar(
       backgroundColor: AppColors.background,
       selectedItemColor: AppColors.primary,
-      unselectedItemColor: AppColors.textGrey,
-      showSelectedLabels: false,
+      unselectedItemColor: AppColors.textWhite,
+      currentIndex: _selectedIndex,
+      onTap: (index) {
+        setState(() => _selectedIndex = index);
+        if (index == 0) Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage()), (route) => false);
+        else if (index == 1) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage()));
+        else if (index == 2) Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CustProfilAccount()));
+      },
+      showSelectedLabels: false, showUnselectedLabels: false, type: BottomNavigationBarType.fixed,
       items: const [
-        BottomNavigationBarItem(icon: Icon(Icons.home, size: 30), label: 'Home'),
-        BottomNavigationBarItem(icon: Icon(Icons.history, size: 30), label: 'History'),
-        BottomNavigationBarItem(icon: Icon(Icons.person, size: 30), label: 'Profile'),
+        BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ""),
+        BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: ""),
+        BottomNavigationBarItem(icon: Icon(Icons.person_rounded), label: ""),
       ],
     );
-  } 
+  }
 }
