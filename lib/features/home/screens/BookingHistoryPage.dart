@@ -8,7 +8,7 @@ import '../../../core/constants/app_styles.dart';
 import '../../../core/network/api_service.dart';
 
 import '../../home/screens/home_page_cust.dart'; 
-import '../../profile/screens/profil_customer.dart'; // ── INI IMPORT PROFILNYA ──
+import '../../profile/screens/profil_customer.dart'; 
 import '../../home/screens/Notifikasipage.dart'; 
 
 class BookingHistoryPage extends StatefulWidget {
@@ -21,7 +21,7 @@ class BookingHistoryPage extends StatefulWidget {
 class _BookingHistoryPageState extends State<BookingHistoryPage> {
   List<dynamic> _bookingHistory = [];
   bool _isLoading = true;
-  int _selectedIndex = 1; // Posisi di tab History
+  int _selectedIndex = 1; 
 
   @override
   void initState() {
@@ -36,9 +36,31 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     if (usernameAktif.isNotEmpty) {
       try {
         final data = await ApiService.fetchNotifikasi(usernameAktif);
+        
         if (mounted) {
+          // ── JURUS AUTO-SORT (YANG AKTIF/MENUNGGU NAIK KE ATAS) ──
+          List<dynamic> sortedData = List.from(data);
+          sortedData.sort((a, b) {
+            int getPriority(String status) {
+              if (status == 'BERLANGSUNG' || status == 'DIKONFIRMASI') return 1; // Paling atas
+              if (status == 'MENUNGGU') return 2;
+              return 3; // SELESAI, BATAL, DITOLAK di bawah
+            }
+            
+            int pA = getPriority(a['status'].toString().toUpperCase());
+            int pB = getPriority(b['status'].toString().toUpperCase());
+            
+            if (pA != pB) {
+              return pA.compareTo(pB); 
+            } else {
+              String idA = a['id_booking'].toString();
+              String idB = b['id_booking'].toString();
+              return idB.compareTo(idA);
+            }
+          });
+
           setState(() {
-            _bookingHistory = data;
+            _bookingHistory = sortedData;
             _isLoading = false;
           });
         }
@@ -59,8 +81,10 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     String noPesanan = data['id_booking']?.toString() ?? '-';
     String namaPelanggan = data['nama_lengkap']?.toString() ?? '-';
     String namaLayanan = data['nama_tampil']?.toString() ?? 'Layanan';
-    String kursi = (data['fisik_ruangan']?.toString() ?? '-').replaceAll('Kursi ', '');
     
+    String kursi = (data['fisik_ruangan']?.toString() ?? '-').replaceAll('Kursi ', '');
+    if (kursi.length == 1) kursi = "0$kursi";
+
     String tanggal = data['tanggal'] ?? '-';
     try {
       DateTime parsedDate = DateTime.parse(tanggal);
@@ -75,16 +99,21 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     String statusLabel;
     String pesanBawah;
 
-    if (statusDb == "MENUNGGU" || statusDb == "DIKONFIRMASI") {
-      themeColor = const Color(0xFFFACC15); 
-      statusLabel = "Dipesan";
+    // ── LOGIKA DESAIN POP-UP (UDAH DIBENERIN SESUAI FOTO BIRU!) ──
+    if (statusDb == "DIKONFIRMASI" || statusDb == "BERLANGSUNG") {
+      themeColor = const Color(0xFF339CBE); // Biru Muda khas desain lu!
+      statusLabel = "Sedang Berlangsung";
+      pesanBawah = "Sesi Anda sedang berlangsung. Selamat\nmenikmati layanan kami!";
+    } else if (statusDb == "MENUNGGU") {
+      themeColor = const Color(0xFFFACC15); // Kuning
+      statusLabel = "Menunggu Konfirmasi";
       pesanBawah = "Mohon datang 15 menit sebelum waktu booking\nTunjukkan bukti booking & bayar di lokasi untuk mulai.";
-    } else if (statusDb == "SELESAI" || statusDb == "BERLANGSUNG") {
-      themeColor = const Color(0xFF388E3C); 
+    } else if (statusDb == "SELESAI") {
+      themeColor = const Color(0xFF388E3C); // Hijau
       statusLabel = "Selesai";
       pesanBawah = "Sesi Anda telah berakhir. Terima kasih telah berkunjung!";
     } else {
-      themeColor = const Color(0xFFE53935); 
+      themeColor = const Color(0xFFE53935); // Merah
       statusLabel = "Dibatalkan";
       pesanBawah = "Mohon maaf proses ini gagal/dibatalkan\nkarena telah melewati dari jadwal";
     }
@@ -94,34 +123,38 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
       builder: (BuildContext context) {
         return Dialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20), side: BorderSide(color: themeColor, width: 4)),
-          backgroundColor: const Color(0xFFE5E2D1), 
+          backgroundColor: const Color(0xFFDDDBCB), // Warna krem keabuan
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 28.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('RINGKASAN PEMESANAN', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF423B21))),
+                Text('RINGKASAN PEMESANAN', textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.bold, color: const Color(0xFF3E371C))),
+                const SizedBox(height: 12),
+                Divider(color: themeColor, thickness: 3),
                 const SizedBox(height: 16),
-                Divider(color: themeColor, thickness: 2.5),
-                const SizedBox(height: 16),
-                _buildDetailRow('Nomor Pesanan', noPesanan), 
+                
+                _buildDetailRow('Nomor Pesanan', noPesanan.padLeft(6, '0')), 
                 _buildDetailRow('Pelanggan', namaPelanggan),  
                 _buildDetailRow('Room', namaLayanan), 
                 _buildDetailRow('Kursi', kursi),
                 _buildDetailRow('Jadwal', '$tanggal\n$waktu'),
+                
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12.0),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(width: 130, child: Text('Status', style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF423B21), fontWeight: FontWeight.w600))),
+                      SizedBox(width: 130, child: Text('Status', style: GoogleFonts.poppins(fontSize: 15, color: const Color(0xFF3E371C), fontWeight: FontWeight.w600))),
                       Expanded(child: Text(statusLabel, style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold, color: themeColor))),
                     ],
                   ),
                 ),
+                
                 const SizedBox(height: 16),
-                Text(pesanBawah, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 12, color: const Color(0xFF423B21), fontWeight: FontWeight.w500)),
-                const SizedBox(height: 28),
+                Text(pesanBawah, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF3E371C), fontWeight: FontWeight.w500)),
+                const SizedBox(height: 24),
+                
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -144,8 +177,8 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 130, child: Text(label, style: GoogleFonts.poppins(fontSize: 14, color: const Color(0xFF423B21), fontWeight: FontWeight.w600))),
-          Expanded(child: Text(value, style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFF423B21)))),
+          SizedBox(width: 130, child: Text(label, style: GoogleFonts.poppins(fontSize: 15, color: const Color(0xFF3E371C), fontWeight: FontWeight.w600))),
+          Expanded(child: Text(value, style: GoogleFonts.poppins(fontSize: 15, fontWeight: FontWeight.bold, color: const Color(0xFF3E371C)))),
         ],
       ),
     );
@@ -226,7 +259,6 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
         ),
       ),
       
-      // ── LOGIKA NAVIGASI BAWAH YANG UDAH DIJAHIT SEMPURNA ──
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -236,7 +268,6 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
           if (index == 0) {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
           } else if (index == 2) {
-            // TERBANG KE HALAMAN PROFIL
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const CustProfilAccount()));
           }
         },
@@ -269,12 +300,13 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
 
     if (statusDb == "MENUNGGU") {
       statusLabel = "Dipesan"; statusColor = Colors.amber; statusBgColor = Colors.amber.withOpacity(0.1); cardBorderColor = Colors.amber.withOpacity(0.5);
-    } else if (statusDb == "BERLANGSUNG") {
-      statusLabel = "Aktif"; statusColor = const Color(0xFF00BFA5); statusBgColor = const Color(0xFF00BFA5).withOpacity(0.1); cardBorderColor = Colors.orange.withOpacity(0.5);
+    } else if (statusDb == "BERLANGSUNG" || statusDb == "DIKONFIRMASI") {
+      // ── WARNA BIRU MUDA + TEKS 'AKTIF' ──
+      statusLabel = "Aktif"; statusColor = const Color(0xFF339CBE); statusBgColor = const Color(0xFF339CBE).withOpacity(0.1); cardBorderColor = const Color(0xFF339CBE).withOpacity(0.5);
     } else if (statusDb == "BATAL" || statusDb == "DITOLAK" || statusDb == "TELAT") {
-      statusLabel = "Batal"; statusColor = const Color(0xFFFF5252); statusBgColor = const Color(0xFFFF5252).withOpacity(0.1); cardBorderColor = Colors.amber.withOpacity(0.3);
+      statusLabel = "Batal"; statusColor = const Color(0xFFFF5252); statusBgColor = const Color(0xFFFF5252).withOpacity(0.1); cardBorderColor = Colors.red.withOpacity(0.3);
     } else { 
-      statusLabel = "Selesai"; statusColor = const Color(0xFF64DD17); statusBgColor = const Color(0xFF64DD17).withOpacity(0.1); cardBorderColor = Colors.orange.withOpacity(0.5);
+      statusLabel = "Selesai"; statusColor = const Color(0xFF64DD17); statusBgColor = const Color(0xFF64DD17).withOpacity(0.1); cardBorderColor = Colors.green.withOpacity(0.3);
     }
 
     return Container(

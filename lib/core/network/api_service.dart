@@ -5,7 +5,7 @@ class ApiService {
   // Ganti dengan IP laptop atau 10.0.2.2 (jika pakai emulator)
   // Pastikan nama folder belakangnya sesuai sama folder XAMPP lu (k16_api atau k16_booking)
   static const String baseUrl = "http://localhost/k16_api";
-
+  //static const String baseUrl = "http://192.168.18.72/k16_api";
   // ==========================================================
   // 1. FUNGSI REGISTER
   // ==========================================================
@@ -98,7 +98,11 @@ class ApiService {
   // ==========================================================
   static Future<List<dynamic>> fetchKursi(String namaPs) async {
     try {
-      final response = await http.get(Uri.parse('$baseUrl/get_kursi.php?nama_ps=$namaPs'));
+      // ── JURUS ANTI ILANG TANDA PLUS (+) ──
+      // Kita encode teksnya biar "Luxury+" ngga dibaca jadi "Luxury " (spasi) sama PHP!
+      final String namaAman = Uri.encodeComponent(namaPs);
+      
+      final response = await http.get(Uri.parse('$baseUrl/get_kursi.php?nama_ps=$namaAman'));
 
       if (response.statusCode == 200) {
         return json.decode(response.body); 
@@ -109,7 +113,6 @@ class ApiService {
       throw Exception('Error: $e');
     }
   }
-
   // ==========================================================
   // 6. FUNGSI CEK JADWAL KOSONG
   // ==========================================================
@@ -177,5 +180,101 @@ class ApiService {
     } catch (e) {
       return {'status': 'error', 'message': 'Error koneksi: $e'};
     }
+  }
+
+  // ==========================================================
+  // 9. FUNGSI DASHBOARD ADMIN (INCOME & JADWAL)
+  // ==========================================================
+  static Future<Map<String, dynamic>> fetchAdminDashboard() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/get_admin_dashboard.php'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {'status': 'error', 'message': 'Gagal terhubung ke server'};
+      }
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error koneksi: $e'};
+    }
+  }
+
+  // ==========================================================
+  // 10. FUNGSI VIEW REPORTS ADMIN (BERDASARKAN TANGGAL)
+  // ==========================================================
+  static Future<Map<String, dynamic>> fetchReports(String tanggal) async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/get_reports.php?tanggal=$tanggal'));
+      if (response.statusCode == 200) {
+        return json.decode(response.body);
+      } else {
+        return {'status': 'error', 'message': 'Gagal terhubung ke server'};
+      }
+    } catch (e) {
+      return {'status': 'error', 'message': 'Error koneksi: $e'};
+    }
+  }
+
+  // ==========================================================
+  // 11. FUNGSI MANAGE BOOKING (ADMIN)
+  // ==========================================================
+  static Future<List<dynamic>> fetchManageBookings() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/get_manage_bookings.php'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') return data['data'];
+      }
+      return [];
+    } catch (e) { return []; }
+  }
+
+  // ==========================================================
+  // 12. FUNGSI UPDATE STATUS BOOKING
+  // ==========================================================
+  static Future<bool> updateBookingStatus(String idBooking, String status) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/update_status_booking.php'),
+        body: {'id_booking': idBooking, 'status': status},
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body)['status'] == 'success';
+      }
+      return false;
+    } catch (e) { return false; }
+  }
+
+  // ==========================================================
+  // 13. FUNGSI AMBIL SEMUA UNIT (UNTUK TUTUP SLOT)
+  // ==========================================================
+  static Future<List<dynamic>> fetchAllUnits() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/get_all_units.php'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'success') return data['data'];
+      }
+      return [];
+    } catch (e) { return []; }
+  }
+
+  // ==========================================================
+  // 14. FUNGSI TUTUP SLOT MANUAL (OFFLINE BOOKING)
+  // ==========================================================
+  static Future<Map<String, dynamic>> tutupSlotManual(String idTarif, String idUnit, String tanggal, String jamMulai, String jamSelesai) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/tutup_slot_manual.php'),
+        body: {
+          'id_tarif': idTarif,
+          'id_unit': idUnit,
+          'tanggal': tanggal,
+          'jam_mulai': jamMulai,
+          'jam_selesai': jamSelesai,
+        },
+      );
+      if (response.statusCode == 200) return json.decode(response.body);
+      return {'status': 'error', 'message': 'Gagal'};
+    } catch (e) { return {'status': 'error', 'message': 'Error: $e'}; }
   }
 }

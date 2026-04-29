@@ -8,7 +8,8 @@ import '../../../core/network/api_service.dart';
 import '../../profile/screens/profil_customer.dart';
 import 'ps/playstation_booking.dart';
 import 'Notifikasipage.dart';
-import 'BookingHistoryPage.dart'; // ── WAJIB IMPORT HALAMAN HISTORY ──
+import 'BookingHistoryPage.dart'; 
+import '../screens/karaoke/karaoke_room_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -58,13 +59,15 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── HEADER SAMA ──
-              Row(
+        // ── KITA BUNGKUS PAKAI COLUMN BIAR HEADER BISA PISAH SAMA SCROLL ──
+        child: Column(
+          children: [
+            // =================================================================
+            // ── HEADER STICKY (DI LUAR SCROLL) ──
+            // =================================================================
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
@@ -84,84 +87,90 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(color: AppColors.primary, width: 1.5),
-                    ),
+                    decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
                     child: IconButton(
                       icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite),
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage()));
-                      },
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage())),
                     ),
                   ),
                 ],
               ),
-              
-              const SizedBox(height: 30),
-              Text("Welcome K16!", style: AppStyles.h2White.copyWith(fontSize: 28)),
-              const SizedBox(height: 5),
-              Text("Apakah siap main hari ini?", style: AppStyles.bodyWhite.copyWith(fontSize: 16)),
-              const SizedBox(height: 30),
+            ),
+            
+            // =================================================================
+            // ── KONTEN BAWAH (BISA DI-SCROLL KARENA ADA EXPANDED) ──
+            // =================================================================
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    Text("Welcome K16!", style: AppStyles.h2White.copyWith(fontSize: 28)),
+                    const SizedBox(height: 5),
+                    Text("Apakah siap main hari ini?", style: AppStyles.bodyWhite.copyWith(fontSize: 16)),
+                    const SizedBox(height: 30),
 
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildServiceCard(
-                      title: "Rental PS", subtitle: "PS3, PS4, PS5", icon: Icons.sports_esports_rounded, colorTheme: AppColors.primary,
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RentalPlaystationScreen())),
-                    ),
-                  ),
-                  const SizedBox(width: 15),
-                  Expanded(
-                    child: _buildServiceCard(
-                      title: "Karaoke", subtitle: "Luxury, Luxury+, Premiere", icon: Icons.mic_rounded, colorTheme: const Color(0xFFE88A34), 
-                      onTap: () {},
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 35),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Booking Terbaru", style: AppStyles.h2White),
-                  TextButton(
-                    onPressed: () {
-                      // ── DIUBAH ARAHNYA KE HISTORY ──
-                      Navigator.push(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage()));
-                    },
-                    child: Text("Lihat Semua", style: AppStyles.bodyWhite.copyWith(color: AppColors.primary)),
-                  ),
-                ],
-              ),
-              
-              const SizedBox(height: 15),
-
-              _isLoadingBooking
-                  ? const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator(color: AppColors.primary)))
-                  : _recentBookings.isEmpty
-                      ? Center(
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 40),
-                            child: Column(
-                              children: [
-                                const Icon(Icons.history_rounded, color: AppColors.textMuted, size: 50),
-                                const SizedBox(height: 10),
-                                Text("Belum ada booking aktif saat ini", style: AppStyles.bodyGrey),
-                              ],
-                            ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildServiceCard(
+                            title: "Rental PS", subtitle: "PS3, PS4, PS5", icon: Icons.sports_esports_rounded, colorTheme: AppColors.primary,
+                            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const RentalPlaystationScreen())),
                           ),
-                        )
-                      : Column(children: _recentBookings.map((booking) => _buildBookingCard(booking)).toList()),
-            ],
-          ),
+                        ),
+                        const SizedBox(width: 25),
+                        Expanded(
+                          child: _buildServiceCard(
+                            title: "Karaoke", subtitle: "Luxury, Luxury+, Premiere", icon: Icons.mic_rounded, colorTheme: const Color(0xFFE88A34), 
+                            onTap: () {
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => const KaraokeRoomScreen()));
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    const SizedBox(height: 35),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text("Booking Terbaru", style: AppStyles.h2White),
+                        TextButton(
+                          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage())),
+                          child: Text("Lihat Semua", style: AppStyles.bodyWhite.copyWith(color: AppColors.primary)),
+                        ),
+                      ],
+                    ),
+                    
+                    const SizedBox(height: 15),
+
+                    _isLoadingBooking
+                        ? const Center(child: Padding(padding: EdgeInsets.all(20.0), child: CircularProgressIndicator(color: AppColors.primary)))
+                        : _recentBookings.isEmpty
+                            ? Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 40),
+                                  child: Column(
+                                    children: [
+                                      const Icon(Icons.history_rounded, color: AppColors.textMuted, size: 50),
+                                      const SizedBox(height: 10),
+                                      Text("Belum ada booking aktif saat ini", style: AppStyles.bodyGrey),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : Column(children: _recentBookings.map((booking) => _buildBookingCard(booking)).toList()),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
       
-      // ── BOTTOM NAVIGATION (DIUBAH ARAHNYA JUGA) ──
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -189,15 +198,12 @@ class _HomePageState extends State<HomePage> {
     String status = data['status'].toString().toUpperCase();
     String namaTampil = data['nama_tampil'];
     String jadwal = "${data['tanggal']} | ${data['jam_mulai']} - ${data['jam_selesai']} WIB";
-
     Color statusColor = (status == "BERLANGSUNG" || status == "DIKONFIRMASI") ? const Color(0xFF34C759) : AppColors.primary;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primaryDark),
-      ),
+      decoration: BoxDecoration(color: AppColors.cardDark, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.primaryDark)),
       child: Row(
         children: [
           Container(
@@ -242,7 +248,21 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 25),
             Text(title, style: AppStyles.h2White),
             const SizedBox(height: 5),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [Text(subtitle, style: AppStyles.bodyWhite.copyWith(fontSize: 12)), Icon(Icons.arrow_forward_ios_rounded, color: colorTheme, size: 14)]),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween, 
+              children: [
+                Expanded(
+                  child: Text(
+                    subtitle, 
+                    style: AppStyles.bodyWhite.copyWith(fontSize: 12),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1, 
+                  )
+                ), 
+                const SizedBox(width: 5), 
+                Icon(Icons.arrow_forward_ios_rounded, color: colorTheme, size: 14)
+              ]
+            ),
           ],
         ),
       ),

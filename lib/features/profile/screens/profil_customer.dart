@@ -3,8 +3,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/network/api_service.dart';
-import '../../home/screens/BookingHistoryPage.dart'; // Pastikan path foldernya sesuai ya 
+import '../../home/screens/BookingHistoryPage.dart'; 
 import '../../home/screens/home_page_cust.dart';
+import '../../home/screens/Notifikasipage.dart'; // ── WAJIB DIIMPORT BUAT TOMBOL LONCENG ──
 import '../../auth/screens/login.dart';
 
 // ============================================================================
@@ -142,6 +143,50 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      
+      // =======================================================================
+      // ── INI APP BAR RESMI NYA BOSKUU! UDAH JADI STICKY HEADER JUGA! ──
+      // =======================================================================
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false, 
+        toolbarHeight: 90, 
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 25,
+                    backgroundImage: AssetImage('assets/logo_ksixteen.jpeg'),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)),
+                      Text("Lounge App", style: AppStyles.h3Gold.copyWith(fontSize: 14, height: 1.1)),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
+                child: IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage())),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
       body: SafeArea(
         child: _isLoading 
         ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -177,18 +222,15 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
               _buildStaticField(label: 'Username', value: _username),
               const SizedBox(height: 32),
 
-              // ── TOMBOL EDIT (DIPERBARUI BIAR BISA REFRESH OTOMATIS) ──
               SizedBox(
                 width: double.infinity, height: 56,
                 child: ElevatedButton(
                   onPressed: () async {
-                    // Pindah ke halaman edit, tunggu sampai balik (await)
                     final bool? isUpdated = await Navigator.push(
                       context,
                       MaterialPageRoute(builder: (context) => const EditCustomerProfile()),
                     );
                     
-                    // Kalau kembaliannya true (berarti dia habis nge-save profil), refresh data!
                     if (isUpdated == true) {
                       setState(() { _isLoading = true; });
                       _tarikDataProfil();
@@ -241,12 +283,11 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textWhite,
-        currentIndex: _selectedIndex, // Ini nilainya 2 (karena di Profil)
+        currentIndex: _selectedIndex, 
         onTap: (index) {
           if (index == 0) {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()));
           } else if (index == 1) {
-            // ── TERBANG KE HALAMAN HISTORY ──
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage()));
           }
         },
@@ -279,9 +320,8 @@ class _CustProfilAccountState extends State<CustProfilAccount> {
   }
 }
 
-
 // ============================================================================
-// ── 2. HALAMAN EDIT PROFIL CUSTOMER (SEKARANG HIDUP 100%) ──
+// ── 2. HALAMAN EDIT PROFIL CUSTOMER ──
 // ============================================================================
 class EditCustomerProfile extends StatefulWidget {
   const EditCustomerProfile({super.key});
@@ -291,7 +331,6 @@ class EditCustomerProfile extends StatefulWidget {
 }
 
 class _EditCustomerProfileState extends State<EditCustomerProfile> {
-  // Controllernya udah dinyalain!
   final TextEditingController _namaController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -310,7 +349,6 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
     _loadCurrentProfile();
   }
 
-  // ── 1. SEDOT DATA PROFIL SAAT HALAMAN DIBUKA ──
   Future<void> _loadCurrentProfile() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _oldUsername = prefs.getString('username_aktif') ?? '';
@@ -329,7 +367,6 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
     }
   }
 
-  // ── 2. LOGIKA SIMPAN PROFIL ──
   Future<void> _prosesUpdate() async {
     String nama = _namaController.text.trim();
     String username = _usernameController.text.trim();
@@ -345,7 +382,6 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
       return;
     }
 
-    // Pengecekan password HANYA JIKA dia ngisi kolom password (mau ganti sandi)
     if (password.isNotEmpty || confirmPassword.isNotEmpty) {
       if (password != confirmPassword) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Konfirmasi password tidak cocok!')));
@@ -359,13 +395,11 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
 
     setState(() => _isSaving = true);
 
-    // Tembak API
     final result = await ApiService.updateProfile(_oldUsername, nama, username, password);
 
     setState(() => _isSaving = false);
 
     if (result['status'] == 'success') {
-      // KALAU USERNAME DIGANTI, KITA WAJIB UPDATE DOMPET HP (SharedPreferences)
       if (_oldUsername != username) {
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('username_aktif', username);
@@ -374,7 +408,6 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profil berhasil diperbarui!'), backgroundColor: Color(0xFF4CAF50)));
       
-      // Lempar nilai "true" ke halaman sebelumnya biar direfresh
       Navigator.pop(context, true); 
     } else {
       if (!mounted) return;
@@ -395,6 +428,50 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
+      
+      // =======================================================================
+      // ── APP BAR BUAT HALAMAN EDIT JUGA! ──
+      // =======================================================================
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false, 
+        toolbarHeight: 90, 
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 25,
+                    backgroundImage: AssetImage('assets/logo_ksixteen.jpeg'),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)),
+                      Text("Lounge App", style: AppStyles.h3Gold.copyWith(fontSize: 14, height: 1.1)),
+                    ],
+                  ),
+                ],
+              ),
+              Container(
+                decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.primary, width: 1.5)),
+                child: IconButton(
+                  icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const NotifikasiPage())),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+
       body: SafeArea(
         child: _isLoading
             ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -431,13 +508,11 @@ class _EditCustomerProfileState extends State<EditCustomerProfile> {
                     
                     const SizedBox(height: 22),
 
-                    // ── FIELD INPUT DINAMIS ──
                     _buildEditTextField("Nama Lengkap", "Masukkan nama lengkap", controller: _namaController),
                     const SizedBox(height: 18),
                     _buildEditTextField("Username", "Masukkan username anda", controller: _usernameController),
                     const SizedBox(height: 18),
                     
-                    // Kolom Edit Password
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

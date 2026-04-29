@@ -194,12 +194,17 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFACC15),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      // ── KITA TAMBAHIN PADDING ATAS BAWAH BIAR GAK NABRAK ──
+                      padding: const EdgeInsets.symmetric(vertical: 16), 
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       elevation: 3,
                     ),
                     onPressed: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage()), (route) => false),
-                    child: Text('TUTUP & KEMBALI KE HALAMAN UTAMA', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)),
+                    child: Text(
+                      'TUTUP & KEMBALI KE HALAMAN UTAMA', 
+                      textAlign: TextAlign.center, // ── OBAT TEKS KE TENGAH ──
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -210,11 +215,15 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
                       side: const BorderSide(color: Color(0xFFFACC15), width: 2),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: const EdgeInsets.symmetric(vertical: 16), // Samain paddingnya biar presisi
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage())),
-                    child: Text('LIHAT RIWAYAT PESANAN', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFFACC15))),
+                    child: Text(
+                      'LIHAT RIWAYAT PESANAN', 
+                      textAlign: TextAlign.center, // Jaga-jaga disetting ke tengah juga
+                      style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFFACC15))
+                    ),
                   ),
                 ),
               ],

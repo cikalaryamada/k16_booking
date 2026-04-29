@@ -222,7 +222,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         hintText: 'Masukkan username anda',
-                        hintStyle: const TextStyle(color: AppColors.textGrey),
+                        hintStyle: const TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -237,7 +237,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       obscureText: !_passwordVisible,
                       decoration: InputDecoration(
                         hintText: 'Masukkan password anda',
-                        hintStyle: const TextStyle(color: AppColors.textGrey),
+                        hintStyle: const TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
