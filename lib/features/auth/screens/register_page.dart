@@ -219,7 +219,7 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
                       controller: _nameController,
                       decoration: InputDecoration(
                         hintText: 'Contoh: Budi Santoso',
-                        hintStyle: TextStyle(color: AppColors.textGrey),
+                        hintStyle: TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -233,7 +233,7 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         hintText: 'Ketik username kamu',
-                        hintStyle: TextStyle(color: AppColors.textGrey),
+                        hintStyle: TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -248,7 +248,7 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
                       obscureText: !_isPasswordVisible,
                       decoration: InputDecoration(
                         hintText: 'Minimal 8 karakter',
-                        hintStyle: TextStyle(color: AppColors.textGrey),
+                        hintStyle: TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -274,7 +274,7 @@ class _HalamanRegistrasiState extends State<HalamanRegistrasi> {
                       obscureText: !_isConfirmPasswordVisible,
                       decoration: InputDecoration(
                         hintText: 'Ketik ulang password',
-                        hintStyle: TextStyle(color: AppColors.textGrey),
+                        hintStyle: TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),

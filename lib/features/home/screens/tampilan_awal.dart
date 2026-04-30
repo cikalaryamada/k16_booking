@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; // Biar font splash screen ikutan Poppins
+import 'package:google_fonts/google_fonts.dart'; 
 
-// Import constants dan halaman login pakai relative path (karena beda folder)
 import '../../../core/constants/app_colors.dart';
 import '../../auth/screens/login.dart';
 
@@ -58,6 +57,7 @@ class _SplashScreenState extends State<SplashScreen>
       body: Container(
         color: AppColors.background,
         child: SafeArea(
+          bottom: false, // ── KUNCI 1: MATIIN SAFE AREA BAWAH ──
           child: Column(
             children: [
               // ── Teks SELAMAT DATANG DI K-16 ──
@@ -107,7 +107,7 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                         const SizedBox(height: 28),
 
-                        // ── Tombol LANJUTKAN DENGAN EFEK HOVER/RIPPLE ──
+                        // ── Tombol LANJUTKAN ──
                         FadeTransition(
                           opacity: _fadeButton,
                           child: Material(
@@ -117,7 +117,6 @@ class _SplashScreenState extends State<SplashScreen>
                               splashColor: AppColors.splashGold.withOpacity(0.4), 
                               highlightColor: AppColors.splashGold.withOpacity(0.2), 
                               onTap: () {
-                                // Navigasi ke HalamanLogin saat diklik
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -182,12 +181,12 @@ class _SplashScreenState extends State<SplashScreen>
                   scale: _scaleLogo,
                   child: Container(
                     color: AppColors.background,
-                    child: Center(
-                      child: Image.asset(
-                        'assets/logo_ksixteen.jpeg',
-                        width: double.infinity,
-                        fit: BoxFit.cover,
-                      ),
+                    alignment: Alignment.bottomCenter, // ── KUNCI 2: RATAKAN KONTENER KE BAWAH ──
+                    child: Image.asset(
+                      'assets/logo_ksixteen.jpeg',
+                      width: double.infinity,
+                      fit: BoxFit.cover, // ── KUNCI 3: PAKAI COVER BIAR FULL KIRI KANAN ──
+                      alignment: Alignment.bottomCenter, // ── KUNCI 4: GAMBAR FOKUS KE BAWAH ──
                     ),
                   ),
                 ),

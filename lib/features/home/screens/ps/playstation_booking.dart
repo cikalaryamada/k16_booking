@@ -8,6 +8,10 @@ import '../home_page_cust.dart';
 import '../../../profile/screens/profil_customer.dart'; 
 import 'seat_playstation.dart'; 
 
+// ── WAJIB IMPORT HALAMAN NOTIFIKASI & HISTORY ──
+import '../Notifikasipage.dart'; 
+import '../BookingHistoryPage.dart'; 
+
 class RentalPlaystationScreen extends StatefulWidget {
   const RentalPlaystationScreen({super.key});
 
@@ -50,7 +54,7 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-              child: _buildHeader(),
+              child: _buildHeader(context), // ── CONTEXT DIKIRIM KE HEADER BIAR BISA PINDAH HALAMAN ──
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -73,6 +77,8 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
           ],
         ),
       ),
+      
+      // ── BOTTOM NAVIGATION UDAH DIJAHIT KE HISTORY ──
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -86,8 +92,14 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
               MaterialPageRoute(builder: (context) => const HomePage()),
               (route) => false,
             );
+          } else if (index == 1) {
+            // ── TERBANG KE HISTORY BOOKING ──
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const BookingHistoryPage()),
+            );
           } else if (index == 2) {
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const CustProfilAccount()),
             );
@@ -105,7 +117,8 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  // ── HEADER SAMA KAYAK HOME (LONCENG UDAH IDUP) ──
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -132,7 +145,13 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
           ),
           child: IconButton(
             icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite),
-            onPressed: () {},
+            onPressed: () {
+              // ── TERBANG KE HALAMAN NOTIFIKASI ──
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotifikasiPage()),
+              );
+            },
           ),
         ),
       ],
@@ -160,7 +179,6 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
   }
 
   Widget _buildCard(BuildContext context, dynamic item) {
-    // ── LOGIKA PENGECEKAN KURSI DARI DATABASE ──
     int jumlahKursi = int.tryParse(item['jumlah_kursi'].toString()) ?? 0;
     bool isAvailable = jumlahKursi > 0;
 
@@ -205,7 +223,6 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
                 ),
               ),
               
-              // ── LABEL JUMLAH KURSI (HIJAU KALAU ADA, MERAH KALAU HABIS) ──
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(

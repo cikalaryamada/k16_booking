@@ -9,14 +9,17 @@ import 'features/home/screens/home_page_cust.dart';
 import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
 import 'features/home/screens/home_page_admin.dart';
-import 'features/home/screens/manage_booking_page.dart';
+import 'features/home/screens/admin/manage_booking_page.dart';
 import 'features/home/screens/Notifikasipage.dart';
 import 'features/home/screens/BookingHistoryPage.dart';
-import 'features/home/screens/karaoke/karaoke_room_page.dart';
 
-
-void main() {
+// ── 2. TAMBAHIN 'async' DI FUNGSI MAIN ──
+void main() async { 
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // ── 3. MANTRA PEMANGGIL KALENDER INDONESIA ──
+  await initializeDateFormatting('id_ID', null); 
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
@@ -32,8 +35,14 @@ class MyApp extends StatelessWidget {
       title: 'K-16 Lounge App',
       debugShowCheckedModeBanner: false,
       // ── TEMA BUATAN LU YANG HILANG AKU BALIKIN KE SINI ──
+      // ── TEMA BUATAN LU YANG UDAH DI-UPGRADE JADI SUPER DARK MODE ──
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
+        
+        // 1. KUNCI UTAMA BIAR GA KENA FLASHBANG PUTIH
+        canvasColor: Colors.black, 
+        scaffoldBackgroundColor: const Color(0xFF000000), 
+        
         appBarTheme: AppBarTheme(
           backgroundColor: const Color(0xFF000000),
           centerTitle: false,
@@ -44,17 +53,25 @@ class MyApp extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
         ),
-        scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
+        
+        // 2. KASIH TAU MATERIAL 3 KALAU BACKGROUND KITA FULL HITAM
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFFFFCC00),
+          background: Colors.black, 
+          surface: Colors.black,
+        ), 
         useMaterial3: true,
+        
+        // 3. ANIMASI TRANSISI PREMIUM (BEBAS PUTIH)
         pageTransitionsTheme: const PageTransitionsTheme(
           builders: <TargetPlatform, PageTransitionsBuilder>{
-            TargetPlatform.android: CupertinoPageTransitionsBuilder(), 
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            // Pake Zoom / FadeUpwards biar transisinya elegan dan ngga ngegeser kanvas
+            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(), 
+            TargetPlatform.iOS: FadeUpwardsPageTransitionsBuilder(),
           },
         ),
       ),
-      home:Dashboard (),
+      home: BookingHistoryPage(),
     );
   }
 }

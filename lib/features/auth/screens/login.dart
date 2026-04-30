@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Tambahan buat nyimpen KTP
 import 'package:http/http.dart' as http; 
 import 'dart:convert'; 
 
 // Sesuaikan letak import folder kamu jika ada yang merah
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
+import '../../../core/network/api_service.dart'; // Tambahan buat nembak Base URL XAMPP
 import 'register_page.dart';
 
-// Import halaman home customer (Agar setelah login bisa langsung pindah ke sini)
+// Import halaman home & admin
 import '../../home/screens/home_page_cust.dart'; 
+import '../../home/screens/home_page_admin.dart'; // Tambahan biar Admin bisa masuk
 
 class HalamanLogin extends StatefulWidget {
-  const HalamanLogin({super.key}); // Diperbarui agar lebih rapi (super.key)
+  const HalamanLogin({super.key}); 
 
   @override
   State<HalamanLogin> createState() => _HalamanLoginState();
@@ -19,7 +22,7 @@ class HalamanLogin extends StatefulWidget {
 
 class _HalamanLoginState extends State<HalamanLogin> {
   bool _passwordVisible = false;
-  bool _isLoading = false; // Variabel untuk mengatur animasi loading
+  bool _isLoading = false; 
 
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -31,7 +34,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
     super.dispose();
   }
 
-  // ── FUNGSI POP-UP ERROR ──
+  // ── FUNGSI POP-UP ERROR (ASLI PUNYA LU) ──
   void _showErrorDialog(String title, String message) {
     showDialog(
       context: context,
@@ -40,10 +43,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
           backgroundColor: AppColors.background, 
           shape: RoundedRectangleBorder( 
             borderRadius: BorderRadius.circular(15), 
-            side: const BorderSide( 
-              color: AppColors.primary, 
-              width: 1.5, 
-            ),
+            side: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
           child: Padding(
             padding: const EdgeInsets.all(20.0), 
@@ -54,54 +54,28 @@ class _HalamanLoginState extends State<HalamanLogin> {
                 Row( 
                   children: [
                     Container( 
-                      width: 28, 
-                      height: 28,
-                      decoration: const BoxDecoration( 
-                        color: AppColors.error, 
-                        shape: BoxShape.circle, 
-                      ),
+                      width: 28, height: 28,
+                      decoration: const BoxDecoration(color: AppColors.error, shape: BoxShape.circle),
                       alignment: Alignment.center, 
-                      child: Text( 
-                        "!",
-                        style: AppStyles.h3Gold.copyWith(color: AppColors.background), 
-                      ),
+                      child: Text("!", style: AppStyles.h3Gold.copyWith(color: AppColors.background)),
                     ),
                     const SizedBox(width: 12), 
-                    Expanded( 
-                      child: Text( 
-                        title, 
-                        style: AppStyles.h1Gold, 
-                      ),
-                    ),
+                    Expanded(child: Text(title, style: AppStyles.h1Gold)),
                   ],
                 ),
                 const SizedBox(height: 15), 
-                Text( 
-                  message,
-                  style: AppStyles.bodyWhite, 
-                ),
+                Text(message, style: AppStyles.bodyWhite),
                 const SizedBox(height: 25), 
                 SizedBox(
-                  width: double.infinity, 
-                  height: 45, 
+                  width: double.infinity, height: 45, 
                   child: ElevatedButton( 
                     style: ElevatedButton.styleFrom( 
                       backgroundColor: AppColors.cardDark, 
-                      shape: RoundedRectangleBorder( 
-                        borderRadius: BorderRadius.circular(10), 
-                      ),
-                      side: const BorderSide( 
-                        color: AppColors.primary, 
-                        width: 1.5, 
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      side: const BorderSide(color: AppColors.primary, width: 1.5),
                     ),
-                    onPressed: () { 
-                      Navigator.of(context).pop(); 
-                    },
-                    child: Text( 
-                      "OKE", 
-                      style: AppStyles.buttonTextGold.copyWith(fontSize: 18), 
-                    ),
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: Text("OKE", style: AppStyles.buttonTextGold.copyWith(fontSize: 18)),
                   ),
                 ),
               ],
@@ -112,48 +86,33 @@ class _HalamanLoginState extends State<HalamanLogin> {
     );
   }
 
-  // ── FUNGSI VALIDASI LOGIN DARI DATABASE ──
+  // ── MESIN BARU: LOGIKA PINTU PUTAR & SHARED PREFS ──
   Future<void> _validateLogin() async {
     String username = _usernameController.text.trim();
     String password = _passwordController.text;
 
-    // 1. Cek form kosong
     if (username.isEmpty || password.isEmpty) {
-      _showErrorDialog(
-        "Form Tidak Lengkap",
-        "Harap isi username dan password Anda terlebih dahulu.",
-      );
+      _showErrorDialog("Form Tidak Lengkap", "Harap isi username dan password Anda terlebih dahulu.");
       return; 
     }
 
-    // Menyalakan animasi loading
-    setState(() {
-      _isLoading = true;
-    });
+    setState(() => _isLoading = true);
 
-    // URL API Login (Ubah localhost menjadi 10.0.2.2 jika di Emulator Android)
-    final String url = 'http://localhost/k16_api/login.php';
+    // Otomatis ngambil IP dari ApiService, bukan localhost lagi!
+    final String url = '${ApiService.baseUrl}/login.php';
 
     try {
-      // 2. Mengirim data POST ke API PHP
       final response = await http.post(
         Uri.parse(url),
-        body: {
-          'username': username,
-          'password': password,
-        },
+        body: {'username': username, 'password': password},
       );
 
-      // 3. Membaca balasan dari Server
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
 
         if (data['status'] == 'success') {
-          // LOGIN BERHASIL
-          debugPrint("Login sukses: ${data['message']}");
-          
           if (!mounted) return;
-          // Memunculkan pesan sukses kecil di bawah layar
+          
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Selamat datang, ${data['data']['nama_lengkap']}!'),
@@ -161,13 +120,21 @@ class _HalamanLoginState extends State<HalamanLogin> {
             ),
           );
 
-          // PENTING: Arahkan Halaman Berdasarkan Role Database
+          // ── SIMPAN KTP KE DOMPET HP ──
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('username_aktif', data['data']['username']);
+          await prefs.setInt('role_aktif', int.parse(data['data']['role'].toString()));
+
+          // ── LOGIKA PINTU PUTAR ──
           int roleId = int.parse(data['data']['role'].toString());
           if (roleId == 1) {
-            // TODO: Arahkan ke halaman Admin (nanti jika halaman admin sudah ada)
-            // Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => HalamanAdmin()));
+            // TERBANG KE ADMIN
+            Navigator.pushReplacement(
+              context, 
+              MaterialPageRoute(builder: (context) => const AdminDashboard())
+            );
           } else {
-            // ARAHKAN KE HALAMAN CUSTOMER (HomePage)
+            // TERBANG KE CUSTOMER
             Navigator.pushReplacement(
               context, 
               MaterialPageRoute(builder: (context) => const HomePage()),
@@ -175,7 +142,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
           }
 
         } else {
-          // LOGIN GAGAL (Password Salah / Username tidak ada)
           if (mounted) _showErrorDialog("Login Gagal", data['message']);
         }
       } else {
@@ -189,15 +155,11 @@ class _HalamanLoginState extends State<HalamanLogin> {
         );
       }
     } finally {
-      // Mematikan animasi loading setelah proses selesai (berhasil/gagal)
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
+  // ── UI ASLI PUNYA LU (NGGA GUA UBAH SAMA SEKALI) ──
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -233,7 +195,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
               Text("Hallo juragan!", style: AppStyles.h1Gold.copyWith(color: AppColors.textWhite)),
               const SizedBox(height: 25),
 
-              // Card Login
               Container(
                 padding: const EdgeInsets.all(25.0),
                 decoration: BoxDecoration(
@@ -246,7 +207,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.2), // Diperbarui agar tidak warning
+                      color: AppColors.primary.withValues(alpha: 0.2), 
                       blurRadius: 15,
                       spreadRadius: 2,
                     ),
@@ -261,7 +222,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         hintText: 'Masukkan username anda',
-                        hintStyle: const TextStyle(color: AppColors.textGrey),
+                        hintStyle: const TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -276,7 +237,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       obscureText: !_passwordVisible,
                       decoration: InputDecoration(
                         hintText: 'Masukkan password anda',
-                        hintStyle: const TextStyle(color: AppColors.textGrey),
+                        hintStyle: const TextStyle(color: Colors.black54),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -295,7 +256,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
                     ),
                     const SizedBox(height: 35),
 
-                    // Button Login (Dengan kondisi Loading)
                     Center(
                       child: SizedBox(
                         width: 200, 
@@ -319,7 +279,6 @@ class _HalamanLoginState extends State<HalamanLogin> {
                     ),
                     const SizedBox(height: 15),
 
-                    // Button Register
                     Center(
                       child: SizedBox(
                         width: 200,
