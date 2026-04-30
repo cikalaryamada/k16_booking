@@ -3,12 +3,21 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
-import '../../../core/network/api_service.dart';
 
-import '../../profile/screens/profil_admin.dart'; 
-import '../screens/admin/reports_page.dart'; 
-import '../screens/admin/manage_booking_page.dart'; 
+class Dashboard extends StatelessWidget {
+  const Dashboard({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData.dark(),
+      home: const AdminDashboard(),
+    );
+  }
+}
+
+// ─── Admin Dashboard ──────────────────────────────────────────────────────────
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
 
@@ -57,58 +66,36 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
-        // ── KITA BUNGKUS PAKAI COLUMN BIAR HEADER BISA PISAH SAMA SCROLL ──
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // =================================================================
-            // ── HEADER STICKY (DI LUAR SCROLL) ──
-            // =================================================================
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-              child: _buildCommonHeader(context),
-            ),
-            
-            // =================================================================
-            // ── KONTEN BAWAH (BISA DI-SCROLL KARENA ADA EXPANDED) ──
-            // =================================================================
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 10),
-                    Center(
-                      child: Column(
-                        children: [
-                          Text('Admin Dashboard', style: AppStyles.h1Gold.copyWith(fontSize: 26)),
-                          const SizedBox(height: 6),
-                          Text(_formatDate(DateTime.now()), style: AppStyles.bodyGrey),
-                        ],
-                      ),
-                    ),
                     const SizedBox(height: 24),
-                    
+                    _buildHeader(),
+                    const SizedBox(height: 28),
                     _buildDailyIncomeCard(),
                     const SizedBox(height: 24),
-                    _buildQuickActions(context),
+                    _buildTodaySchedule(),
                     const SizedBox(height: 24),
-                    _buildTodaySchedule(context),
+                    _buildQuickActions(),
+                    const SizedBox(height: 16),
                   ],
                 ),
               ),
             ),
+            _buildBottomNavBar(),
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
-  Widget _buildCommonHeader(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  // ─── Header ────────────────────────────────────────────────
+  Widget _buildHeader() {
+    return Column(
       children: [
         Row(
           children: [

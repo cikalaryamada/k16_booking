@@ -1,20 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Tambahan buat nyimpen KTP
-import 'package:http/http.dart' as http; 
-import 'dart:convert'; 
-
-// Sesuaikan letak import folder kamu jika ada yang merah
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
 import '../../../core/network/api_service.dart'; // Tambahan buat nembak Base URL XAMPP
 import 'register_page.dart';
 
-// Import halaman home & admin
-import '../../home/screens/home_page_cust.dart'; 
-import '../../home/screens/home_page_admin.dart'; // Tambahan biar Admin bisa masuk
-
 class HalamanLogin extends StatefulWidget {
-  const HalamanLogin({super.key}); 
+  const HalamanLogin({Key? key}) : super(key: key);
 
   @override
   State<HalamanLogin> createState() => _HalamanLoginState();
@@ -22,7 +13,6 @@ class HalamanLogin extends StatefulWidget {
 
 class _HalamanLoginState extends State<HalamanLogin> {
   bool _passwordVisible = false;
-  bool _isLoading = false; 
 
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -86,80 +76,28 @@ class _HalamanLoginState extends State<HalamanLogin> {
     );
   }
 
-  // ── MESIN BARU: LOGIKA PINTU PUTAR & SHARED PREFS ──
-  Future<void> _validateLogin() async {
+  // ── FUNGSI VALIDASI LOGIN ──
+  void _validateLogin() {
     String username = _usernameController.text.trim();
     String password = _passwordController.text;
 
+    // 1. Cek form kosong
     if (username.isEmpty || password.isEmpty) {
       _showErrorDialog("Form Tidak Lengkap", "Harap isi username dan password Anda terlebih dahulu.");
       return; 
     }
 
-    setState(() => _isLoading = true);
-
-    // Otomatis ngambil IP dari ApiService, bukan localhost lagi!
-    final String url = '${ApiService.baseUrl}/login.php';
-
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        body: {'username': username, 'password': password},
+    if (username != "juragan" || password != "12345678") {
+      _showErrorDialog(
+        "Login Gagal",
+        "Username belum terdaftar atau password yang Anda masukkan salah.",
       );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-
-        if (data['status'] == 'success') {
-          if (!mounted) return;
-          
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Selamat datang, ${data['data']['nama_lengkap']}!'),
-              backgroundColor: const Color(0xFF66BB6A),
-            ),
-          );
-
-          // ── SIMPAN KTP KE DOMPET HP ──
-          SharedPreferences prefs = await SharedPreferences.getInstance();
-          await prefs.setString('username_aktif', data['data']['username']);
-          await prefs.setInt('role_aktif', int.parse(data['data']['role'].toString()));
-
-          // ── LOGIKA PINTU PUTAR ──
-          int roleId = int.parse(data['data']['role'].toString());
-          if (roleId == 1) {
-            // TERBANG KE ADMIN
-            Navigator.pushReplacement(
-              context, 
-              MaterialPageRoute(builder: (context) => const AdminDashboard())
-            );
-          } else {
-            // TERBANG KE CUSTOMER
-            Navigator.pushReplacement(
-              context, 
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          }
-
-        } else {
-          if (mounted) _showErrorDialog("Login Gagal", data['message']);
-        }
-      } else {
-        if (mounted) _showErrorDialog("Error Server", "Terjadi kesalahan pada server (Error ${response.statusCode})");
-      }
-    } catch (e) {
-      if (mounted) {
-        _showErrorDialog(
-          "Error Koneksi", 
-          "Gagal terhubung ke database. Pastikan XAMPP menyala dan URL benar.\n\nDetail: $e"
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+      return;
     }
+
+    debugPrint("Validasi sukses! Lanjut masuk ke aplikasi.");
   }
 
-  // ── UI ASLI PUNYA LU (NGGA GUA UBAH SAMA SEKALI) ──
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -207,7 +145,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.2), 
+                      color: AppColors.primary.withOpacity(0.2),
                       blurRadius: 15,
                       spreadRadius: 2,
                     ),
@@ -222,7 +160,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       controller: _usernameController,
                       decoration: InputDecoration(
                         hintText: 'Masukkan username anda',
-                        hintStyle: const TextStyle(color: Colors.black54),
+                        hintStyle: TextStyle(color: AppColors.textGrey),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -237,7 +175,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                       obscureText: !_passwordVisible,
                       decoration: InputDecoration(
                         hintText: 'Masukkan password anda',
-                        hintStyle: const TextStyle(color: Colors.black54),
+                        hintStyle: TextStyle(color: AppColors.textGrey),
                         filled: true,
                         fillColor: Colors.white,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
@@ -256,6 +194,7 @@ class _HalamanLoginState extends State<HalamanLogin> {
                     ),
                     const SizedBox(height: 35),
 
+                    // Button Login 
                     Center(
                       child: SizedBox(
                         width: 200, 

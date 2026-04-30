@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
+import 'package:intl/date_symbol_data_local.dart';
 import 'features/home/screens/tampilan_awal.dart'; 
 import 'features/profile/screens/profil_admin.dart';
 import 'features/profile/screens/profil_customer.dart';
@@ -10,15 +11,10 @@ import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
 import 'features/home/screens/home_page_admin.dart';
 import 'features/home/screens/admin/manage_booking_page.dart';
-import 'package:intl/date_symbol_data_local.dart';
 
-// ── 2. TAMBAHIN 'async' DI FUNGSI MAIN ──
-void main() async { 
+
+void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // ── 3. MANTRA PEMANGGIL KALENDER INDONESIA ──
-  await initializeDateFormatting('id_ID', null); 
-
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
@@ -34,7 +30,6 @@ class MyApp extends StatelessWidget {
       title: 'K-16 Lounge App',
       debugShowCheckedModeBanner: false,
       // ── TEMA BUATAN LU YANG HILANG AKU BALIKIN KE SINI ──
-      // ── TEMA BUATAN LU YANG UDAH DI-UPGRADE JADI SUPER DARK MODE ──
       theme: ThemeData(
         textTheme: GoogleFonts.poppinsTextTheme(),
         
@@ -52,13 +47,8 @@ class MyApp extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
         ),
-        
-        // 2. KASIH TAU MATERIAL 3 KALAU BACKGROUND KITA FULL HITAM
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFFFCC00),
-          background: Colors.black, 
-          surface: Colors.black,
-        ), 
+        scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
         
         // 3. ANIMASI TRANSISI PREMIUM (BEBAS PUTIH)
@@ -70,7 +60,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: const SplashScreen(), 
+      home: const AdminDashboard(), 
     );
   }
 }
