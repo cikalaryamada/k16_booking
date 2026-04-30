@@ -43,7 +43,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       });
       return;
     }
-// untuk mengambil data dari API Service menggunakan username yang aktif dan menampilkan hasilnya di profil admin. Jika terjadi kesalahan, akan menampilkan pesan gagal memuat data.
+
     final result = await ApiService.fetchProfile(usernameAktif); 
 
     if (result['status'] == 'success') {
@@ -61,7 +61,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       });
     }
   }
-// Fungsi untuk menampilkan dialog konfirmasi logout. Jika admin memilih "Ya", maka data sesi akan dihapus dan admin akan diarahkan ke halaman login. Jika memilih "Tidak", dialog akan ditutup tanpa melakukan tindakan apa pun.
+
   void _showLogoutDialog() {
     showDialog(// untuk menampilkan dialog konfirmasi logout saat admin mengklik tombol logout. Dialog ini memiliki tampilan yang menarik dengan ikon, judul, pesan, dan dua tombol untuk konfirmasi.
       context: context,
@@ -76,7 +76,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: AppColors.primary.withOpacity(0.4), width: 1),
             ),
-            child: Column(// mengatur tata letak popup logout (judul, pesan, dan tombol)dengan jarak yang cukup dan mudah dibaca.
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
@@ -84,7 +84,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                   decoration: BoxDecoration(color: AppColors.danger.withOpacity(0.2), shape: BoxShape.circle, border: Border.all(color: AppColors.danger, width: 2)),
                   child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 32),
                 ),
-                const SizedBox(height: 16),// memberikan jarak antara ikon dan judul untuk membuat tampilan lebih rapi dan mudah dibaca.
+                const SizedBox(height: 16),
                 Text('Konfirmasi Logout', style: AppStyles.h2White),
                 const SizedBox(height: 10),
                 Text('Apakah Admin yakin untuk keluar?', textAlign: TextAlign.center, style: AppStyles.bodyGrey),
@@ -104,7 +104,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () async {//saat admin klik tombol "ya" konfirmasi logout, maka "prefs.clear()" akan menghapus data yang sudah tersimpan di halman login. dan "pushAndRemoveUntil" akan menutup halaman profil kemudian kembali ke haalman login awal.
+                        onPressed: () async {
                           SharedPreferences prefs = await SharedPreferences.getInstance();
                           await prefs.clear();
                           if (!context.mounted) return;
@@ -137,16 +137,21 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
+        // ── KITA BUNGKUS PAKAI COLUMN BIAR HEADER BISA PISAH SAMA SCROLL ──
         child: Column(
           children: [
-            // ── 1. HEADER DI LUAR SCROLL BIAR DIAM DI ATAS (STICKY) ──
+            // =================================================================
+            // ── HEADER STICKY (DI LUAR SCROLL) ──
+            // =================================================================
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+              // ── PADDINGNYA DISAMAIN KAYA HOME PAGE ADMIN: L=20, T=20, R=20, B=10 ──
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
               child: _buildHeader(),
             ),
             
-            // ── 2. SISA HALAMAN DIBUNGKUS EXPANDED BIAR BISA DI-SCROLL ──
-            // untuk menampilkan konten profil admin yang dapat di-scroll. Jika data masih dimuat, akan menampilkan indikator loading. Setelah data berhasil dimuat, akan menampilkan informasi profil admin seperti nama lengkap, username, dan password (dengan opsi untuk menampilkan atau menyembunyikan password). Di bagian bawah juga terdapat tombol logout yang memicu dialog konfirmasi logout.
+            // =================================================================
+            // ── KONTEN BAWAH (BISA DI-SCROLL KARENA ADA EXPANDED) ──
+            // =================================================================
             Expanded(
               child: _isLoading 
                   ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
@@ -166,7 +171,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                           const SizedBox(height: 24),
                           Row(
                             children: [
-                              Container(// ikon untuk menampilkan profil admin dengan latar belakang warna utama dan ikon admin di tengahnya. Ikon ini memberikan identitas visual yang jelas bahwa ini adalah halaman profil admin.
+                              Container(
                                 width: 34, height: 34,
                                 decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
                                 child: const Icon(Icons.admin_panel_settings, color: AppColors.background, size: 22),
@@ -176,23 +181,23 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 22),
-                        //untuk menampilkan informasi profil admin seperti nama lengkap, username, dan password yang tidak bisa diedit secara manual. 
+
                           _buildStaticField('Nama Lengkap', _namaLengkap),
                           const SizedBox(height: 18),
                           _buildStaticField('Username', _username),
                           const SizedBox(height: 18),
                           _buildPasswordStaticField(), 
                           const SizedBox(height: 40),
-                        // untuk menampilkan tombol logout yang nantinya akan mucul dialog/popup  konfirmasi logout saat di klik.
+                          
                           SizedBox(
                             width: double.infinity, height: 56,
                             child: ElevatedButton(
                               onPressed: _showLogoutDialog,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.danger,// warna latar belakang tombol logout.
+                                backgroundColor: AppColors.danger,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
                               ),
-                              child: Text('Logout', style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),// teks pada tombol logout dengan gaya teks yang sudah didefinisikan di AppStyles.
+                              child: Text('Logout', style: AppStyles.buttonTextWhite.copyWith(fontSize: 18)),
                             ),
                           ),
                           const SizedBox(height: 20),
@@ -202,21 +207,20 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             ),
           ],
         ),
-      ), 
-      // untuk menampilkan bottom navigation bar dengan dua item: "Home" dan "History". Saat admin memilih salah satu item, aplikasi akan menavigasi ke halaman yang sesuai (AdminDashboard untuk "Home" dan ReportPage untuk "History"). Item yang dipilih akan ditandai dengan warna yang berbeda untuk memberikan umpan balik visual kepada pengguna.
+      ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
         unselectedItemColor: AppColors.textWhite,
         currentIndex: _selectedIndex,
         onTap: (index) {
-          if (index == 0) {// untuk 
+          if (index == 0) {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AdminDashboard()));
           } else if (index == 1) {
             Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const ReportPage()));
           }
         },
-        showSelectedLabels: false, showUnselectedLabels: false, type: BottomNavigationBarType.fixed,// untuk menyembunyikan label pada item yang dipilih dan tidak dipilih, serta mengatur jenis bottom navigation bar menjadi fixed agar semua item tetap terlihat tanpa adanya efek shifting.
+        showSelectedLabels: false, showUnselectedLabels: false, type: BottomNavigationBarType.fixed,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home_rounded), label: ""),
           BottomNavigationBarItem(icon: Icon(Icons.history_rounded), label: ""),
@@ -246,7 +250,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
       ],
     );
   }
-//untuk membuat kotak input di porfil admmin yang tidak bisa diedit manual, jadi hanya untuk menampilkan data saja, untuk merubahnya lewat login di halaman login awal.
+
   Widget _buildStaticField(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -276,7 +280,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           child: Row(
             children: [
               Expanded(
-                child: Text(_passwordVisible ? _password : '•' * 8, //pengaturan pasword yang ada tombol mata, untuk menampilkan pasword nya, jika tidak di klik maka akan menampilkan titik".
+                child: Text(_passwordVisible ? _password : '•' * 8, 
                 style: AppStyles.bodyWhite.copyWith(color: const Color(0xFF555555), fontSize: _passwordVisible ? 14 : 18, letterSpacing: _passwordVisible ? 0 : 2)),
               ),
               IconButton(

@@ -7,7 +7,7 @@ import '../../../core/network/api_service.dart';
 
 import '../../profile/screens/profil_admin.dart'; 
 import '../screens/admin/reports_page.dart'; 
-import '../screens/manage_booking_page.dart'; 
+import '../screens/admin/manage_booking_page.dart'; 
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -23,13 +23,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
   List<dynamic> _todaySchedule = [];
   bool _isLoading = true;
 
-  @override// untuk memanggil fungsi _tarikDataDashboard() saat widget diinisialisasi. Fungsi ini akan mengambil data pendapatan harian dan jadwal hari ini dari API, kemudian memperbarui state widget dengan data yang diterima.
+  @override
   void initState() {
     super.initState();
     _tarikDataDashboard();
   }
 
-//untuk mengambil data dashboard admin dari API. Fungsi ini menggunakan ApiService untuk memanggil endpoint yang menyediakan data pendapatan harian dan jadwal hari ini. Jika permintaan berhasil, data akan disimpan dalam state widget dan indikator loading akan dihentikan. Jika terjadi kesalahan, indikator loading juga akan dihentikan tanpa memperbarui data.
   Future<void> _tarikDataDashboard() async {
     try {
       final result = await ApiService.fetchAdminDashboard();
@@ -47,7 +46,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-// untuk memformat tanggal saat ini ke dalam format yang lebih mudah dibaca, seperti "Senin, 1 Jan 2024". Fungsi ini menggunakan daftar nama hari dan bulan dalam bahasa Indonesia untuk menghasilkan string tanggal yang sesuai dengan format yang diinginkan.
   String _formatDate(DateTime date) {
     const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'];
@@ -59,43 +57,56 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return Scaffold(//mengatur warna latar belakang yang sudah di definisikan di Appcolors, dan menampilkan konten utama dalam SafeArea dengan SingleChildScrollView untuk memastikan tampilan responsif dan dapat digulir jika konten melebihi batas layar. 
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── HEADER ADMIN (TANPA LONCENG) ──
-              _buildCommonHeader(context),// untuk menampilkan header yang tetap, yang berisi logo dan nama aplikasi.
-              //menampilkan judul "admin  dashboard" dan tanggal yang sudah diatur dengan fungsi_formatdate() untuk menampilkan tanggal saat ini dalam format yang lebih mudah dibaca.
-              const SizedBox(height: 32),
-              Center(
+        // ── KITA BUNGKUS PAKAI COLUMN BIAR HEADER BISA PISAH SAMA SCROLL ──
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // =================================================================
+            // ── HEADER STICKY (DI LUAR SCROLL) ──
+            // =================================================================
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+              child: _buildCommonHeader(context),
+            ),
+            
+            // =================================================================
+            // ── KONTEN BAWAH (BISA DI-SCROLL KARENA ADA EXPANDED) ──
+            // =================================================================
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 child: Column(
                   children: [
-                    Text('Admin Dashboard', style: AppStyles.h1Gold.copyWith(fontSize: 26)),
-                    const SizedBox(height: 6),
-                    Text(_formatDate(DateTime.now()), style: AppStyles.bodyGrey),
+                    const SizedBox(height: 10),
+                    Center(
+                      child: Column(
+                        children: [
+                          Text('Admin Dashboard', style: AppStyles.h1Gold.copyWith(fontSize: 26)),
+                          const SizedBox(height: 6),
+                          Text(_formatDate(DateTime.now()), style: AppStyles.bodyGrey),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    
+                    _buildDailyIncomeCard(),
+                    const SizedBox(height: 24),
+                    _buildQuickActions(context),
+                    const SizedBox(height: 24),
+                    _buildTodaySchedule(context),
                   ],
                 ),
               ),
-              const SizedBox(height: 24),
-              
-              //  menampilkan kartu pendapatan harian dengan menggunakan fungsi _buildDailyIncomeCard(). Kartu ini menampilkan ikon, label, dan jumlah pendapatan yang diformat dengan benar. Jika data masih dalam proses pemuatan, akan ditampilkan indikator loading.
-              _buildDailyIncomeCard(),
-              const SizedBox(height: 24),
-              _buildQuickActions(context),
-              const SizedBox(height: 24),
-              _buildTodaySchedule(context),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: _buildBottomNavBar(context),
     );
   }
 
-  // ── HEADER UDAH BERSIH DARI LONCENG ──
   Widget _buildCommonHeader(BuildContext context) {
-    return Row(// menampilkan header  yang berisi logo dan nama aplikasi.
+    return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Row(
@@ -105,7 +116,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
               backgroundImage: AssetImage('assets/logo_ksixteen.jpeg'),
             ),
             const SizedBox(width: 12),
-            Column(// mengatur tata letak nama aplikasi dengan jarak yang cukup antara logo dan teks, serta menggunakan gaya teks yang konsisten dengan tema aplikasi. yang diambil dari AppStyles untuk memastikan konsistensi desain di seluruh aplikasi.
+            Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)),
@@ -118,10 +129,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  Widget _buildDailyIncomeCard() {// untuk  menampilkan kartu pendapatan harian dengan menggunakan fungsi _buildDailyIncomeCard(). Kartu ini menampilkan ikon, label, dan jumlah pendapatan yang diformat dengan benar. Jika data masih dalam proses pemuatan, akan ditampilkan indikator loading.
-    final formatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);// untuk memformat jumlah pendapatan harian ke dalam format mata uang Indonesia (Rupiah) dengan menggunakan package intl. Formatter ini akan menampilkan simbol "Rp" di depan jumlah dan menghilangkan desimal.
+  Widget _buildDailyIncomeCard() {
+    final formatter = NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0);
 
-    return Container(// untuk menampilkan kartu pendapatan harian,  dan mengatur tampilan kartu.
+    return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -130,7 +141,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
         border: Border.all(color: AppColors.primary, width: 2),
       ),
       child: Row(
-        children: [// untuk menampilkan dan menggatur tampilan warna dan ukuran ikon, serta label dan jumlah pendapatan pada kartu.
+        children: [
           const Icon(Icons.account_balance_wallet_rounded, color: Colors.white, size: 35),
           const SizedBox(width: 22),
           Column(
@@ -148,7 +159,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildQuickActions(BuildContext context) {
-    return Column(//  untuk menampilkan bagian "Quick Actions" yang berisi tombol-tombol untuk mengakses fitur penting seperti "Manage Booking" dan "View Reports". Setiap tombol memiliki ikon, label, dan aksi yang sesuai saat ditekan. Tata letak menggunakan Column dengan jarak yang cukup antara elemen untuk memastikan tampilan yang rapi dan mudah digunakan.
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Quick Actions', style: AppStyles.labelBold),
@@ -165,7 +176,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
-    return InkWell(// untuk membuat tombol aksi yang dapat ditekan dengan efek visual saat ditekan (InkWell). Tombol ini menampilkan ikon, label, dan panah untuk menunjukkan bahwa tombol dapat ditekan. Saat tombol ditekan, fungsi onTap yang diberikan akan dipanggil untuk menavigasi ke halaman yang sesuai
+    return InkWell(
       onTap: onTap,
       child: Container(
         width: double.infinity,
@@ -185,7 +196,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildTodaySchedule(BuildContext context) {
-    return Column(// untuk menampilkan data jadwal hari ini  yang diambil dari API dan tombol "more" untuk melihat jadwal lebih lengkap.
+    return Column(
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -218,7 +229,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
   }
 
   Widget _buildScheduleCard(dynamic data) {
-    //  untuk memformat jam mulai dan jam selesai dari data jadwal yang diterima dari API. Jam mulai dan jam selesai diambil dari data, kemudian diubah menjadi format yang lebih mudah dibaca dengan mengganti tanda ":" dengan "." dan menggabungkan keduanya menjadi satu string waktu yang menunjukkan rentang waktu jadwal.
     String jamMulai = (data['jam_mulai'] ?? '').toString().split(':').take(2).join('.');
     String jamSelesai = (data['jam_selesai'] ?? '').toString().split(':').take(2).join('.');
     String waktu = "$jamMulai - $jamSelesai WIB";
@@ -226,7 +236,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     
     Color statusColor = (status == "BERLANGSUNG" || status == "DIKONFIRMASI") ? const Color(0xFF34C759) : AppColors.primary;
 
-    return Container(// untuk menampilkan kartu jadwal dengan informasi lengkap tentang nama pengguna, nama tampil, fisik ruangan, waktu jadwal, dan status. Kartu ini memiliki tampilan yang menarik dengan warna latar belakang, border, dan ikon yang sesuai dengan status jadwal.
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(

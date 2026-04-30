@@ -16,7 +16,7 @@ class ReportPage extends StatefulWidget {
 }
 
 class _ReportPageState extends State<ReportPage> {
-  int _selectedIndex = 1; // ── Karena ini halaman report, indexnya 1 ──
+  int _selectedIndex = 1; 
   DateTime _currentDate = DateTime.now();
 
   bool _isLoading = true;
@@ -69,16 +69,48 @@ class _ReportPageState extends State<ReportPage> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      
+      // =======================================================================
+      // ── INI APP BAR RESMI NYA BOSKUU! SAMA KAYA ADMIN HOME ──
+      // =======================================================================
+      appBar: AppBar(
+        backgroundColor: AppColors.background,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        automaticallyImplyLeading: false, 
+        toolbarHeight: 90, 
+        title: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 5),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  const CircleAvatar(
+                    radius: 25,
+                    backgroundImage: AssetImage('assets/logo_ksixteen.jpeg'),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)),
+                      Text("Lounge App", style: AppStyles.h3Gold.copyWith(fontSize: 14, height: 1.1)),
+                    ],
+                  ),
+                ],
+              ),
+              // Ngga ada lonceng karena ini Admin
+            ],
+          ),
+        ),
+      ),
+
       body: SafeArea(
         child: Column(
           children: [
-            // ── 1. HEADER DI LUAR SCROLL BIAR DIAM DI ATAS (STICKY) ──
-            Padding(
-              padding: EdgeInsets.fromLTRB(uniformPadding, uniformPadding, uniformPadding, 10),
-              child: _buildCommonHeader(),
-            ),
-            
-            // ── 2. SISA HALAMAN DIBUNGKUS EXPANDED BIAR BISA DI-SCROLL ──
+            // ── SISA HALAMAN DIBUNGKUS EXPANDED BIAR BISA DI-SCROLL ──
             Expanded(
               child: SingleChildScrollView(
                 padding: EdgeInsets.symmetric(horizontal: uniformPadding, vertical: 10),
@@ -188,7 +220,6 @@ class _ReportPageState extends State<ReportPage> {
         ),
       ),
       
-      // ── BOTTOM NAVIGATION KHUSUS ADMIN ──
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -258,28 +289,6 @@ class _ReportPageState extends State<ReportPage> {
     );
   }
 
-  // ── HEADER ADMIN SERASI (TANPA LONCENG) ──
-  Widget _buildCommonHeader() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            const CircleAvatar(radius: 25, backgroundImage: AssetImage('assets/logo_ksixteen.jpeg')),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("K-16", style: AppStyles.h1Gold.copyWith(height: 1.1)),
-                Text("Lounge App", style: AppStyles.h3Gold.copyWith(fontSize: 14, height: 1.1)),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   Widget _buildDateNavButton(IconData icon, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
@@ -303,15 +312,25 @@ class _ReportPageState extends State<ReportPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: AppStyles.labelBold),
-              const SizedBox(height: 8),
-              Text(value, style: AppStyles.h1Gold.copyWith(fontSize: isLarge ? 32 : 28)),
-            ],
+          Expanded( 
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title, 
+                  style: AppStyles.labelBold,
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1, 
+                ),
+                const SizedBox(height: 8),
+                Text(value, style: AppStyles.h1Gold.copyWith(fontSize: isLarge ? 32 : 28)),
+              ],
+            ),
           ),
-          if (icon != null) Icon(icon, color: AppColors.primary.withOpacity(0.5), size: isLarge ? 48 : 36),
+          if (icon != null) ...[
+            const SizedBox(width: 8), 
+            Icon(icon, color: AppColors.primary.withOpacity(0.5), size: isLarge ? 48 : 36)
+          ]
         ],
       ),
     );
