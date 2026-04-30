@@ -9,8 +9,8 @@ import '../../../profile/screens/profil_customer.dart';
 import 'seat_playstation.dart'; 
 
 // ── WAJIB IMPORT HALAMAN NOTIFIKASI & HISTORY ──
-import '../Notifikasipage.dart'; 
-import '../BookingHistoryPage.dart'; 
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; 
 
 class RentalPlaystationScreen extends StatefulWidget {
   const RentalPlaystationScreen({super.key});

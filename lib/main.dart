@@ -10,8 +10,7 @@ import 'features/auth/screens/login.dart';
 import 'features/home/screens/ps/playstation_booking.dart';
 import 'features/home/screens/home_page_admin.dart';
 import 'features/home/screens/admin/manage_booking_page.dart';
-import 'features/home/screens/Notifikasipage.dart';
-import 'features/home/screens/BookingHistoryPage.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 // ── 2. TAMBAHIN 'async' DI FUNGSI MAIN ──
 void main() async { 
@@ -71,7 +70,7 @@ class MyApp extends StatelessWidget {
           },
         ),
       ),
-      home: BookingHistoryPage(),
+      home: const SplashScreen(), 
     );
   }
 }

@@ -9,8 +9,8 @@ import '../../../../core/network/api_service.dart';
 
 import '../home_page_cust.dart'; 
 import '../../../profile/screens/profil_customer.dart'; 
-import '../Notifikasipage.dart'; 
-import '../BookingHistoryPage.dart'; 
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; 
 
 class BookingScheduleScreen extends StatefulWidget {
   final String idTarif;

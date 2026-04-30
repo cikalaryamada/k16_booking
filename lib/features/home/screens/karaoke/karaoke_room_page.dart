@@ -8,8 +8,8 @@ import '../../../../core/network/api_service.dart';
 // ── IMPORT HALAMAN LAIN BIAR NAVBAR & LONCENG BERFUNGSI ──
 import '../home_page_cust.dart'; 
 import '../../../profile/screens/profil_customer.dart'; 
-import '../Notifikasipage.dart'; 
-import '../BookingHistoryPage.dart'; 
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; 
 import '../ps/seat_playstation.dart'; 
 
 class KaraokeRoomScreen extends StatefulWidget {

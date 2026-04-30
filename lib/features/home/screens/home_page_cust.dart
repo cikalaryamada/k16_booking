@@ -7,8 +7,8 @@ import '../../../core/network/api_service.dart';
 
 import '../../profile/screens/profil_customer.dart';
 import 'ps/playstation_booking.dart';
-import 'Notifikasipage.dart';
-import 'BookingHistoryPage.dart'; 
+import 'notifikasipage.dart';
+import 'bookinghistorypage.dart'; 
 import '../screens/karaoke/karaoke_room_page.dart';
 
 class HomePage extends StatefulWidget {

@@ -11,8 +11,8 @@ import 'booking_schedule_screen.dart';
 // ── IMPORT HALAMAN LAIN BIAR NAVBAR & LONCENG BERFUNGSI ──
 import '../home_page_cust.dart'; 
 import '../../../profile/screens/profil_customer.dart'; 
-import '../Notifikasipage.dart'; 
-import '../BookingHistoryPage.dart'; // ── WAJIB IMPORT HISTORY DI SINI ──
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; // ── WAJIB IMPORT HISTORY DI SINI ──
 
 class SeatSelectionScreen extends StatefulWidget {
   final String namaTampil; 
