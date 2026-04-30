@@ -4,8 +4,8 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Ganti dengan IP laptop atau 10.0.2.2 (jika pakai emulator)
   // Pastikan nama folder belakangnya sesuai sama folder XAMPP lu (k16_api atau k16_booking)
-  //static const String baseUrl = "http://localhost/k16_api";
-  static const String baseUrl = "http://192.168.18.72/k16_api";
+  static const String baseUrl = "http://localhost/k16_api";
+  //static const String baseUrl = "http://192.168.18.72/k16_api";
   // ==========================================================
   // 1. FUNGSI REGISTER
   // ==========================================================

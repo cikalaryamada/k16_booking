@@ -9,7 +9,7 @@ import '../../../core/network/api_service.dart';
 
 import '../../home/screens/home_page_cust.dart'; 
 import '../../profile/screens/profil_customer.dart'; 
-import '../../home/screens/Notifikasipage.dart'; 
+import 'notifikasipage.dart'; 
 
 class BookingHistoryPage extends StatefulWidget {
   const BookingHistoryPage({super.key});

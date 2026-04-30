@@ -11,7 +11,8 @@ import 'booking_schedule_screen.dart';
 // ── IMPORT HALAMAN LAIN BIAR NAVBAR & LONCENG BERFUNGSI ──
 import '../home_page_cust.dart'; 
 import '../../../profile/screens/profil_customer.dart'; 
-import '../Notifikasipage.dart'; 
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; // ── WAJIB IMPORT HISTORY DI SINI ──
 
 class SeatSelectionScreen extends StatefulWidget {
   final String namaTampil; 
@@ -87,7 +88,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
         ),
       ),
       
-      // ── BOTTOM NAVIGATION BAR KONSISTEN ──
+      // ── BOTTOM NAVIGATION BAR KONSISTEN & UDAH DIJAHIT ──
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -102,9 +103,15 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
               MaterialPageRoute(builder: (context) => const HomePage()),
               (route) => false,
             );
+          } else if (index == 1) {
+            // ── LOMPAT KE HISTORY BOOKING ──
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const BookingHistoryPage()),
+            );
           } else if (index == 2) {
             // Pergi ke Profil
-            Navigator.push(
+            Navigator.pushReplacement(
               context,
               MaterialPageRoute(builder: (context) => const CustProfilAccount()),
             );
