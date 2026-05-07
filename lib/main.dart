@@ -47,7 +47,6 @@ class MyApp extends StatelessWidget {
           iconTheme: const IconThemeData(color: Colors.white),
           elevation: 0,
         ),
-        scaffoldBackgroundColor: const Color(0xFF000000), // Biar background otomatis hitam
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFFCC00)), 
         useMaterial3: true,
         

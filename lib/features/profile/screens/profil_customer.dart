@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; 
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/constants/app_styles.dart
+import '../../../core/constants/app_styles.dart';
 import '../../../core/network/api_service.dart';
 import '../../home/screens/bookinghistorypage.dart'; 
 import '../../home/screens/home_page_cust.dart';

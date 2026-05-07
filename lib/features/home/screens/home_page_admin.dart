@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:k16_booking/core/network/api_service.dart';
+import 'package:k16_booking/features/home/screens/admin/manage_booking_page.dart';
+import 'package:k16_booking/features/home/screens/admin/reports_page.dart';
+import 'package:k16_booking/features/profile/screens/profil_admin.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
@@ -40,7 +44,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Future<void> _tarikDataDashboard() async {
     try {
-      final result = await ApiService.fetchAdminDashboard();
+      final result = await ApiService .fetchAdminDashboard();
       if (result['status'] == 'success') {
         setState(() {
           _dailyIncome = double.parse(result['income'].toString());
@@ -61,37 +65,33 @@ class _AdminDashboardState extends State<AdminDashboard> {
     return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]} ${date.year}';
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
+ @override
+Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: AppColors.background,
+    // 1. Konten utama langsung diletakkan di dalam SafeArea
+    body: SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Column(
           children: [
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 24),
-                    _buildHeader(),
-                    const SizedBox(height: 28),
-                    _buildDailyIncomeCard(),
-                    const SizedBox(height: 24),
-                    _buildTodaySchedule(),
-                    const SizedBox(height: 24),
-                    _buildQuickActions(),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
-            _buildBottomNavBar(),
+            const SizedBox(height: 24),
+            _buildHeader(),
+            const SizedBox(height: 28),
+            _buildDailyIncomeCard(),
+            const SizedBox(height: 24),
+            _buildTodaySchedule(context),
+            const SizedBox(height: 24),
+            _buildQuickActions(context),
+            const SizedBox(height: 16),
           ],
         ),
       ),
-    );
-  }
+    ),
+    // 2. Gunakan properti bawaan Scaffold untuk Bottom Navigation Bar
+    bottomNavigationBar: _buildBottomNavBar(context),
+  );
+}
 
   // ─── Header ────────────────────────────────────────────────
   Widget _buildHeader() {

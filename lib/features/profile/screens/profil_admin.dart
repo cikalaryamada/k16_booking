@@ -139,7 +139,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
         // ── KITA BUNGKUS PAKAI COLUMN BIAR HEADER BISA PISAH SAMA SCROLL ──
         child: Column(
           children: [
-<<<<<<< HEAD
+
             // =================================================================
             // ── HEADER STICKY (DI LUAR SCROLL) ──
             // =================================================================
@@ -151,16 +151,14 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             
             // =================================================================
             // ── KONTEN BAWAH (BISA DI-SCROLL KARENA ADA EXPANDED) ──
-            // =================================================================
-=======
+            // ===============================================================
             // ── 1. HEADER DI LUAR SCROLL BIAR DIAM DI ATAS (STICKY) ──
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
               child: _buildHeader(),
             ),
             
-            // ── 2. SISA HALAMAN DIBUNGKUS EXPANDED BIAR BISA DI-SCROLL ──
->>>>>>> c4ae932797a9277fdd356a21a3ad36186c8c449c
+            // ── 2. SISA HALAMAN DIBUNGKUS EXPANDED BIAR BISA DI-SCROLL ─
             Expanded(
               child: _isLoading 
                   ? const Center(child: CircularProgressIndicator(color: AppColors.primary))

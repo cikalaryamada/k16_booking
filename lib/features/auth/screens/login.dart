@@ -5,7 +5,7 @@ import '../../../core/network/api_service.dart'; // Tambahan buat nembak Base UR
 import 'register_page.dart';
 
 class HalamanLogin extends StatefulWidget {
-  const HalamanLogin({Key? key}) : super(key: key);
+  const HalamanLogin({super.key});
 
   @override
   State<HalamanLogin> createState() => _HalamanLoginState();
@@ -205,8 +205,8 @@ class _HalamanLoginState extends State<HalamanLogin> {
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
                             side: const BorderSide(color: AppColors.primary, width: 1.5),
                           ),
-                          onPressed: _isLoading ? null : () => _validateLogin(),
-                          child: _isLoading 
+                          onPressed: _isLoading ? null: () => _validateLogin(),
+                          child: _isLoading
                             ? const SizedBox(
                                 height: 20, 
                                 width: 20, 
