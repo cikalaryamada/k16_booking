@@ -4,13 +4,8 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Ganti dengan IP laptop atau 10.0.2.2 (jika pakai emulator)
   // Pastikan nama folder belakangnya sesuai sama folder XAMPP lu (k16_api atau k16_booking)
-<<<<<<< HEAD
-  //static const String baseUrl = "http://localhost/k16_api";
-  static const String baseUrl = "http://192.168.1.5/k16_api";
-=======
   static const String baseUrl = "http://localhost/k16_api";
   //static const String baseUrl = "http://192.168.18.72/k16_api";
->>>>>>> 334f4122c4748a84b3847b5f91c8248bc7e880d2
   // ==========================================================
   // 1. FUNGSI REGISTER
   // ==========================================================
@@ -190,6 +185,7 @@ class ApiService {
   // ==========================================================
   // 9. FUNGSI DASHBOARD ADMIN (INCOME & JADWAL)
   // ==========================================================
+  // Fungsi ini ngambil data income total per hari, jumlah booking per hari, dan jadwal booking yang sudah terisi untuk ditampilkan di dashboard admin
   static Future<Map<String, dynamic>> fetchAdminDashboard() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/get_admin_dashboard.php'));
@@ -206,6 +202,7 @@ class ApiService {
   // ==========================================================
   // 10. FUNGSI VIEW REPORTS ADMIN (BERDASARKAN TANGGAL)
   // ==========================================================
+  // Fungsi ini ngambil data laporan booking berdasarkan tanggal yang dipilih admin, untuk ditampilkan di halaman reports admin. Laporan ini bisa berupa daftar booking yang terjadi pada tanggal tersebut, total income, dan statistik lainnya.
   static Future<Map<String, dynamic>> fetchReports(String tanggal) async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/get_reports.php?tanggal=$tanggal'));
@@ -222,6 +219,7 @@ class ApiService {
   // ==========================================================
   // 11. FUNGSI MANAGE BOOKING (ADMIN)
   // ==========================================================
+  // Fungsi ini ngambil data semua booking yang ada di database, untuk ditampilkan di halaman manage booking admin. Di halaman ini admin bisa melihat daftar booking, statusnya, dan melakukan aksi seperti update status atau hapus booking.
   static Future<List<dynamic>> fetchManageBookings() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/get_manage_bookings.php'));
@@ -236,6 +234,9 @@ class ApiService {
   // ==========================================================
   // 12. FUNGSI UPDATE STATUS BOOKING
   // ==========================================================
+
+  // Fungsi ini digunakan untuk mengupdate status booking, misalnya dari "Booked" menjadi "Completed" atau "Cancelled". Admin bisa memanggil fungsi ini saat melakukan aksi update status di halaman manage booking. 
+  //Status yang diupdate akan disimpan di database dan bisa dilihat oleh customer di notifikasi mereka.
   static Future<bool> updateBookingStatus(String idBooking, String status) async {
     try {
       final response = await http.post(
@@ -252,6 +253,9 @@ class ApiService {
   // ==========================================================
   // 13. FUNGSI AMBIL SEMUA UNIT (UNTUK TUTUP SLOT)
   // ==========================================================
+
+  // Fungsi ini digunakan untuk mengambil daftar semua unit yang ada di database, untuk ditampilkan di dropdown(bagian tutup slot) saat admin ingin menutup slot manual. 
+  // Dengan mengambil semua unit, admin bisa memilih unit mana yang ingin ditutup slotnya pada tanggal dan jam tertentu.
   static Future<List<dynamic>> fetchAllUnits() async {
     try {
       final response = await http.get(Uri.parse('$baseUrl/get_all_units.php'));
@@ -266,6 +270,9 @@ class ApiService {
   // ==========================================================
   // 14. FUNGSI TUTUP SLOT MANUAL (OFFLINE BOOKING)
   // ==========================================================
+
+  // Fungsi ini digunakan untuk menutup slot secara manual oleh admin, misalnya untuk keperluan offline booking atau untuk menandai slot tertentu sebagai tidak tersedia. 
+  // Admin bisa memilih unit, tanggal, jam mulai, dan jam selesai untuk slot yang ingin
   static Future<Map<String, dynamic>> tutupSlotManual(String idTarif, String idUnit, String tanggal, String jamMulai, String jamSelesai) async {
     try {
       final response = await http.post(

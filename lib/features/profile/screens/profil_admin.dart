@@ -9,6 +9,7 @@ import '../../home/screens/home_page_admin.dart';
 import '../../home/screens/admin/reports_page.dart'; 
 import '../../auth/screens/login.dart';
 
+//bagian ini adalah untuk menampilkan profil admin dengan data yang diambil dari API. Admin dapat melihat nama lengkap, username, dan password (dengan opsi untuk menampilkan atau menyembunyikan password). Terdapat juga tombol logout yang akan menghapus sesi dan mengarahkan admin kembali ke halaman login. Navigasi bawah memungkinkan admin untuk beralih antara dashboard, laporan, dan profil dengan mudah.
 class AdminProfileScreen extends StatefulWidget {
   const AdminProfileScreen({super.key});
 
@@ -18,7 +19,7 @@ class AdminProfileScreen extends StatefulWidget {
 
 class _AdminProfileScreenState extends State<AdminProfileScreen> {
   int _selectedIndex = 2; 
-
+//bagian ini untuk menyimpan data profil admin yang diambil dari API. Variabel _isLoading digunakan untuk menampilkan indikator loading saat data sedang diambil, sedangkan _passwordVisible digunakan untuk mengontrol apakah password ditampilkan atau disembunyikan.
   String _namaLengkap = 'Loading...';
   String _username = 'Loading...';
   String _password = '';
@@ -30,11 +31,11 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     super.initState();
     _tarikDataProfil();
   }
-
+//untuk mengambil data profil admin dari API.
   Future<void> _tarikDataProfil() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String usernameAktif = prefs.getString('username_aktif') ?? '';
-
+//ini untuk memeriksa apakah username aktif tersedia di SharedPreferences. Jika tidak ada, maka akan menampilkan pesan "Sesi Berakhir" pada nama lengkap dan username, serta menghentikan proses loading. Jika ada, maka akan melanjutkan untuk mengambil data profil dari API menggunakan username tersebut. 
     if (usernameAktif.isEmpty) {
       setState(() {
         _namaLengkap = 'Sesi Berakhir';
@@ -79,7 +80,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
+                Container( //untuk menampilkan ikon logout dengan latar belakang merah muda transparan, bentuk lingkaran, dan border merah. Ikon ini memberikan indikasi visual yang jelas bahwa tindakan yang akan dilakukan adalah logout.
                   width: 64, height: 64,
                   decoration: BoxDecoration(color: AppColors.danger.withOpacity(0.2), shape: BoxShape.circle, border: Border.all(color: AppColors.danger, width: 2)),
                   child: const Icon(Icons.logout_rounded, color: AppColors.error, size: 32),
@@ -104,7 +105,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton(
-                        onPressed: () async {
+                        onPressed: () async { //untuk mengeksekusi proses logout saat admin mengkonfirmasi dengan menekan tombol "ya". proses ini akan menghapus semua data yang ada di sharedpreferences, lalu akan mengarahkan admin kembali ke halaman login.
                           SharedPreferences prefs = await SharedPreferences.getInstance();
                           await prefs.clear();
                           if (!context.mounted) return;
@@ -114,6 +115,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             (Route<dynamic> route) => false,
                           );
                         },
+                        //untuk mengatur tampilan tombol "ya" dengan warna latar belakang merah, teks putih, dan border radius yang melengkung untuk memberikan tampilan yang menarik dan konsisten dengan tema aplikasi.
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.danger,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -152,7 +154,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
             // =================================================================
             // ── KONTEN BAWAH (BISA DI-SCROLL KARENA ADA EXPANDED) ──
             // =================================================================
-            Expanded(
+            Expanded(//untuk membuat konten prfil admin bisa di scroll jiak isinya melebihi tinggi layar.
               child: _isLoading 
                   ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                   : SingleChildScrollView(
@@ -171,7 +173,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                           const SizedBox(height: 24),
                           Row(
                             children: [
-                              Container(
+                              Container(//untuk  menampilkan ikon admin disebelah kiri teks "amdinprofile"
                                 width: 34, height: 34,
                                 decoration: BoxDecoration(color: AppColors.primary, borderRadius: BorderRadius.circular(8)),
                                 child: const Icon(Icons.admin_panel_settings, color: AppColors.background, size: 22),
@@ -181,7 +183,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                             ],
                           ),
                           const SizedBox(height: 22),
-
+                        // untuk menampilkan data dari profil admin dari API yang tidak bisa diedit (static field).
                           _buildStaticField('Nama Lengkap', _namaLengkap),
                           const SizedBox(height: 18),
                           _buildStaticField('Username', _username),
@@ -189,7 +191,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
                           _buildPasswordStaticField(), 
                           const SizedBox(height: 40),
                           
-                          SizedBox(
+                          SizedBox(//untuk menampilkan tombol logout dengan lebar penuh, warna merah, dan teks putih. Saat tombol ini ditekan, akan memanggil fungsi _showLogoutDialog untuk menampilkan dialog konfirmasi logout.
                             width: double.infinity, height: 56,
                             child: ElevatedButton(
                               onPressed: _showLogoutDialog,
@@ -208,6 +210,8 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
           ],
         ),
       ),
+
+      //untuk menampilkan bottom navigation bar dengan dua item: dashboard dan laporan. Item yang aktif ditandai dengan warna yang berbeda. Saat admin mengetuk salah satu item, akan mengarahkan ke halaman yang sesuai (dashboard atau laporan) dengan menggantikan halaman saat ini.
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: AppColors.background,
         selectedItemColor: AppColors.primary,
@@ -230,6 +234,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
+//untuk membangun tampilan header pada halaman profil admin. Header ini terdiri dari logo aplikasi (gambar) dan nama aplikasi yang ditampilkan secara horizontal. Logo ditempatkan di sebelah kiri, diikuti oleh nama aplikasi yang terdiri dari dua baris teks: "K-16" dan "Lounge App". Header ini dirancang untuk memberikan identitas visual yang konsisten dengan tema aplikasi.
   Widget _buildHeader() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -251,6 +256,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
+//ini untuk membangun tampilan field statis yang menampilkan data profil admin seperti nama lengkap dan username. Setiap field terdiri dari label (misalnya "Nama Lengkap") dan nilai yang diambil dari API. Field ini dirancang dengan latar belakang putih, teks berwarna abu-abu gelap, dan border melengkung untuk memberikan tampilan yang bersih dan mudah dibaca.
   Widget _buildStaticField(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,6 +273,7 @@ class _AdminProfileScreenState extends State<AdminProfileScreen> {
     );
   }
 
+//ini untuk bagian mengatur tampilan password dengan password ditampilkan sebagai titik-titik, lalu jika admin menekan ikon mata, maka pw akan menampilkan pw asli.
   Widget _buildPasswordStaticField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
