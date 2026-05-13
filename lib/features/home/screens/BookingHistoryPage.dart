@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'dart:convert'; // ── WAJIB BUAT API BATAL ──
+import 'package:http/http.dart' as http; // ── WAJIB BUAT API BATAL ──
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_styles.dart';
@@ -75,8 +77,47 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     }
   }
 
+  // =========================================================================
+  // ── FUNGSI BARU: NGEBATALIN PESANAN DARI CUSTOMER ──
+  // =========================================================================
+  Future<void> _batalkanPesanan(String idBooking) async {
+    showDialog(context: context, builder: (c) => const Center(child: CircularProgressIndicator(color: AppColors.primary)), barrierDismissible: false);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/update_status_booking.php'),
+        body: {'id_booking': idBooking, 'status': 'BATAL'},
+      );
+
+      if (!mounted) return;
+      Navigator.pop(context); // Tutup loading
+
+      if (response.statusCode == 200) {
+        try {
+          final data = json.decode(response.body);
+          if (data['status'] == 'success') {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Pesanan berhasil dibatalkan!"), backgroundColor: Colors.green));
+            Navigator.pop(context); // Tutup pop-up detail
+            _tarikDataRiwayat(); // Refresh layar History
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Gagal: ${data['message']}"), backgroundColor: Colors.orange));
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error PHP: ${response.body}"), backgroundColor: Colors.red));
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Server Error 404"), backgroundColor: Colors.red));
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // Tutup loading
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Koneksi API Putus: $e"), backgroundColor: Colors.red));
+    }
+  }
+
   void _showDetailDialog(BuildContext context, dynamic data) {
     String statusDb = data['status'].toString().toUpperCase();
+    String idBookingAsli = data['id_booking'].toString(); // ── Ambil ID Asli buat API Batal ──
     
     String noPesanan = data['id_booking']?.toString() ?? '-';
     String namaPelanggan = data['nama_lengkap']?.toString() ?? '-';
@@ -99,9 +140,9 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     String statusLabel;
     String pesanBawah;
 
-    // ── LOGIKA DESAIN POP-UP (UDAH DIBENERIN SESUAI FOTO BIRU!) ──
+    // ── LOGIKA DESAIN POP-UP ──
     if (statusDb == "DIKONFIRMASI" || statusDb == "BERLANGSUNG") {
-      themeColor = const Color(0xFF339CBE); // Biru Muda khas desain lu!
+      themeColor = const Color(0xFF339CBE); // Biru Muda
       statusLabel = "Sedang Berlangsung";
       pesanBawah = "Sesi Anda sedang berlangsung. Selamat\nmenikmati layanan kami!";
     } else if (statusDb == "MENUNGGU") {
@@ -155,6 +196,49 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
                 Text(pesanBawah, textAlign: TextAlign.center, style: GoogleFonts.poppins(fontSize: 13, color: const Color(0xFF3E371C), fontWeight: FontWeight.w500)),
                 const SizedBox(height: 24),
                 
+                // =============================================================
+                // ── TOMBOL BATALKAN PESANAN (HANYA MUNCUL KALO "MENUNGGU") ──
+                // =============================================================
+                if (statusDb == "MENUNGGU") ...[
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFE53935), width: 2),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                      onPressed: () {
+                        // Pop-up Konfirmasi Biar Gak Kepencet Gak Sengaja
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext ctxKonfirm) {
+                            return AlertDialog(
+                              backgroundColor: AppColors.cardDark,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: const BorderSide(color: AppColors.primary, width: 1)),
+                              title: Text("Batalkan Pesanan?", style: AppStyles.h2White),
+                              content: Text("Apakah kamu yakin ingin membatalkan pesanan ini?", style: AppStyles.bodyGrey),
+                              actions: [
+                                TextButton(onPressed: () => Navigator.pop(ctxKonfirm), child: Text("TIDAK", style: AppStyles.buttonTextGold)),
+                                ElevatedButton(
+                                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE53935)),
+                                  onPressed: () {
+                                    Navigator.pop(ctxKonfirm); // Tutup dialog konfirmasi
+                                    _batalkanPesanan(idBookingAsli); // Tembak API Batal
+                                  }, 
+                                  child: Text("YA, BATALKAN", style: AppStyles.buttonTextWhite)
+                                ),
+                              ],
+                            );
+                          }
+                        );
+                      },
+                      child: Text('BATALKAN PESANAN', style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold, color: const Color(0xFFE53935))),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                ],
+
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -301,7 +385,6 @@ class _BookingHistoryPageState extends State<BookingHistoryPage> {
     if (statusDb == "MENUNGGU") {
       statusLabel = "Dipesan"; statusColor = Colors.amber; statusBgColor = Colors.amber.withOpacity(0.1); cardBorderColor = Colors.amber.withOpacity(0.5);
     } else if (statusDb == "BERLANGSUNG" || statusDb == "DIKONFIRMASI") {
-      // ── WARNA BIRU MUDA + TEKS 'AKTIF' ──
       statusLabel = "Aktif"; statusColor = const Color(0xFF339CBE); statusBgColor = const Color(0xFF339CBE).withOpacity(0.1); cardBorderColor = const Color(0xFF339CBE).withOpacity(0.5);
     } else if (statusDb == "BATAL" || statusDb == "DITOLAK" || statusDb == "TELAT") {
       statusLabel = "Batal"; statusColor = const Color(0xFFFF5252); statusBgColor = const Color(0xFFFF5252).withOpacity(0.1); cardBorderColor = Colors.red.withOpacity(0.3);
