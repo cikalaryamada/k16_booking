@@ -51,19 +51,28 @@ class _ReportPageState extends State<ReportPage> {
     try {
       final result = await ApiService.fetchReports(tglSql);
 
-      // Pastikan widget masih mounted dan tanggal belum berubah lagi
+      // ── DEBUG: lihat isi response dari PHP ──
+      debugPrint('=== RESPONSE API REPORTS ===');
+      debugPrint(result.toString());
+      debugPrint('============================');
+
+      // Pastikan widget masih mounted
       if (!mounted) return;
 
       if (result['status'] == 'success') {
         setState(() {
-          // PHP sering kirim angka sebagai String, jadi kita parse dulu biar aman
-          totalBooking    = int.tryParse(result['total'].toString())      ?? 0;
-          bookingKaraoke  = int.tryParse(result['karaoke'].toString())    ?? 0;
-          rentalPS        = int.tryParse(result['ps'].toString())         ?? 0;
-          // Coba key 'pendapatan', fallback ke 'total_pendapatan', fallback ke 0
-          totalPendapatan = int.tryParse(
-            (result['pendapatan'] ?? result['total_pendapatan'] ?? result['income'] ?? 0).toString()
-          ) ?? 0;
+          // Pakai double.tryParse biar aman untuk angka desimal "1.00" maupun integer "1"
+          totalBooking    = (double.tryParse(result['total']?.toString()   ?? '0') ?? 0).round();
+          bookingKaraoke  = (double.tryParse(result['karaoke']?.toString() ?? '0') ?? 0).round();
+          rentalPS        = (double.tryParse(result['ps']?.toString()      ?? '0') ?? 0).round();
+
+          // Coba berbagai kemungkinan key pendapatan dari PHP
+          final rawPendapatan = result['pendapatan']
+              ?? result['total_pendapatan']
+              ?? result['income']
+              ?? result['total_harga']
+              ?? 0;
+          totalPendapatan = (double.tryParse(rawPendapatan.toString()) ?? 0.0).round();
 
           if (result['data'] != null) {
             daftarBooking = List<Map<String, dynamic>>.from(result['data']);
@@ -74,12 +83,16 @@ class _ReportPageState extends State<ReportPage> {
           _isLoading = false;
         });
       } else {
+        // ── DEBUG: status bukan success, print pesannya ──
+        debugPrint('API status bukan success: ${result['message']}');
         setState(() {
           daftarBooking = [];
           _isLoading = false;
         });
       }
     } catch (e) {
+      // ── DEBUG: ada exception ──
+      debugPrint('ERROR _tarikDataReport: $e');
       if (mounted) setState(() => _isLoading = false);
     }
   }
