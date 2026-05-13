@@ -23,6 +23,7 @@ class _ReportPageState extends State<ReportPage> {
   int totalBooking = 0;
   int bookingKaraoke = 0;
   int rentalPS = 0;
+  int totalPendapatan = 0;
   List<Map<String, dynamic>> daftarBooking = []; 
 
   @override
@@ -33,31 +34,53 @@ class _ReportPageState extends State<ReportPage> {
   }
 
   Future<void> _tarikDataReport() async {
-    setState(() => _isLoading = true);
-    
-    String tglSql = DateFormat('yyyy-MM-dd').format(_currentDate);
-    
+    // Reset semua data dulu sebelum fetch baru, biar ngga keliatan data lama
+    setState(() {
+      _isLoading = true;
+      totalBooking = 0;
+      bookingKaraoke = 0;
+      rentalPS = 0;
+      totalPendapatan = 0;
+      daftarBooking = [];
+    });
+
+    // Ambil tanggal SETELAH setState selesai update _currentDate
+    final DateTime tanggalFetch = _currentDate;
+    final String tglSql = DateFormat('yyyy-MM-dd').format(tanggalFetch);
+
     try {
       final result = await ApiService.fetchReports(tglSql);
+
+      // Pastikan widget masih mounted dan tanggal belum berubah lagi
+      if (!mounted) return;
+
       if (result['status'] == 'success') {
         setState(() {
-          totalBooking = result['total'] ?? 0;
-          bookingKaraoke = result['karaoke'] ?? 0;
-          rentalPS = result['ps'] ?? 0;
-          
+          // PHP sering kirim angka sebagai String, jadi kita parse dulu biar aman
+          totalBooking    = int.tryParse(result['total'].toString())      ?? 0;
+          bookingKaraoke  = int.tryParse(result['karaoke'].toString())    ?? 0;
+          rentalPS        = int.tryParse(result['ps'].toString())         ?? 0;
+          // Coba key 'pendapatan', fallback ke 'total_pendapatan', fallback ke 0
+          totalPendapatan = int.tryParse(
+            (result['pendapatan'] ?? result['total_pendapatan'] ?? result['income'] ?? 0).toString()
+          ) ?? 0;
+
           if (result['data'] != null) {
             daftarBooking = List<Map<String, dynamic>>.from(result['data']);
           } else {
             daftarBooking = [];
           }
-          
+
           _isLoading = false;
         });
       } else {
-        setState(() => _isLoading = false);
+        setState(() {
+          daftarBooking = [];
+          _isLoading = false;
+        });
       }
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -120,14 +143,35 @@ class _ReportPageState extends State<ReportPage> {
                     const SizedBox(height: 16),
 
                     // JUDUL HALAMAN
-                    Center(
-                      child: Column(
-                        children: [
-                          Text('Admin Dashboard', style: AppStyles.h2White.copyWith(fontSize: 26, fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 4),
-                          Text('View Reports', style: AppStyles.bodyGrey.copyWith(fontSize: 16)),
-                        ],
-                      ),
+                    Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Tombol back di kiri
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context),
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: AppColors.cardDark,
+                                border: Border.all(color: AppColors.primary),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Icon(Icons.arrow_back_ios_new_rounded, color: AppColors.primary, size: 18),
+                            ),
+                          ),
+                        ),
+                        // Judul tengah
+                        Column(
+                          children: [
+                            Text('Admin Dashboard', style: AppStyles.h2White.copyWith(fontSize: 26, fontWeight: FontWeight.bold)),
+                            const SizedBox(height: 4),
+                            Text('View Reports', style: AppStyles.bodyGrey.copyWith(fontSize: 16)),
+                          ],
+                        ),
+                      ],
                     ),
                     
                     const SizedBox(height: 24),
@@ -136,11 +180,11 @@ class _ReportPageState extends State<ReportPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildDateNavButton(Icons.chevron_left, () {
+                        _buildDateNavButton(Icons.chevron_left, () async {
                           setState(() {
                             _currentDate = _currentDate.subtract(const Duration(days: 1));
                           });
-                          _tarikDataReport(); 
+                          await _tarikDataReport(); 
                         }),
                         Expanded(
                           child: Container(
@@ -155,15 +199,19 @@ class _ReportPageState extends State<ReportPage> {
                             child: Text(formattedDate, style: AppStyles.bodyWhite.copyWith(fontWeight: FontWeight.bold)),
                           ),
                         ),
-                        _buildDateNavButton(Icons.chevron_right, () {
+                        _buildDateNavButton(Icons.chevron_right, () async {
                           setState(() {
                             _currentDate = _currentDate.add(const Duration(days: 1));
                           });
-                          _tarikDataReport(); 
+                          await _tarikDataReport(); 
                         }),
                       ],
                     ),
                     const SizedBox(height: 24),
+
+                    // CARD PENDAPATAN HARIAN
+                    _buildPendapatanCard(),
+                    const SizedBox(height: 16),
 
                     // SUMMARY CARDS
                     _isLoading 
@@ -331,6 +379,46 @@ class _ReportPageState extends State<ReportPage> {
             const SizedBox(width: 8), 
             Icon(icon, color: AppColors.primary.withOpacity(0.5), size: isLarge ? 48 : 36)
           ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPendapatanCard() {
+    final formatter = NumberFormat('#,###', 'id_ID');
+    final String nominal = _isLoading ? '...' : 'Rp ${formatter.format(totalPendapatan)}';
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [AppColors.cardLight, AppColors.cardDark],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.primary, width: 1.5),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.primary, size: 28),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Pendapatan Hari Ini', style: AppStyles.bodyWhite.copyWith(fontSize: 13)),
+              const SizedBox(height: 4),
+              Text(nominal, style: AppStyles.h1Gold.copyWith(fontSize: 22, fontWeight: FontWeight.bold)),
+            ],
+          ),
         ],
       ),
     );
