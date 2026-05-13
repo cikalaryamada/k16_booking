@@ -2,13 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart'; // Wajib ada buat font Poppins lu
 import 'features/home/screens/tampilan_awal.dart'; 
-import 'features/profile/screens/profil_admin.dart';
-import 'features/profile/screens/profil_customer.dart';
-import 'features/home/screens/home_page_cust.dart';
-import 'features/auth/screens/login.dart';
-import 'features/home/screens/ps/playstation_booking.dart';
-import 'features/home/screens/home_page_admin.dart';
-import 'features/home/screens/admin/manage_booking_page.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 // ── 2. TAMBAHIN 'async' DI FUNGSI MAIN ──

@@ -41,8 +41,10 @@ class _ManageBookingState extends State<ManageBooking> {
           final data = json.decode(response.body);
           if (data['status'] == 'success') {
             
-            List<dynamic> sortedData = List.from(data['data']);
-            sortedData.sort((a, b) {
+            List<dynamic> rawData = List.from(data['data']);
+
+            // ── JURUS AUTO-SORT ADMIN ──
+            rawData.sort((a, b) {
               int getPriority(String status) {
                 if (status == 'BERLANGSUNG' || status == 'DIKONFIRMASI') return 1; 
                 if (status == 'MENUNGGU') return 2; 
@@ -60,7 +62,7 @@ class _ManageBookingState extends State<ManageBooking> {
               }
             });
 
-            _allBookings = sortedData;
+            _allBookings = rawData; 
 
           } else {
             if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("XAMPP nolak: ${data['message']}"), backgroundColor: Colors.orange));
@@ -295,19 +297,24 @@ class _ManageBookingState extends State<ManageBooking> {
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> filteredBookings = _allBookings;
+    // =========================================================================
+    // ── SARINGAN LAPIS BAJA (SEKARANG TELAT JUGA IKUT DIBUANG!) ──
+    // =========================================================================
+    List<dynamic> activeBookings = _allBookings.where((b) {
+      String status = (b['status'] ?? '').toString().toUpperCase().trim();
+      // NENDANG SEMUA YANG BERBAU BATAL/DITOLAK DAN TELAT
+      return status != 'BATAL' && status != 'DIBATALKAN' && status != 'DITOLAK' && status != 'TELAT';
+    }).toList();
+
+    List<dynamic> filteredBookings = activeBookings;
     if (_selectedFilter == 'Playstation') {
-      filteredBookings = _allBookings.where((b) => b['jenis'] == 'ps').toList();
+      filteredBookings = activeBookings.where((b) => b['jenis'] == 'ps').toList();
     } else if (_selectedFilter == 'Karaoke') {
-      filteredBookings = _allBookings.where((b) => b['jenis'] == 'karaoke').toList();
+      filteredBookings = activeBookings.where((b) => b['jenis'] == 'karaoke').toList();
     }
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      
-      // =======================================================================
-      // ── LOGO K-16 KEMBALI MENGUDARA DI APP BAR! ──
-      // =======================================================================
       appBar: AppBar(
         backgroundColor: AppColors.background,
         elevation: 0,
@@ -347,9 +354,6 @@ class _ManageBookingState extends State<ManageBooking> {
       body: SafeArea(
         child: Column(
           children: [
-            // =================================================================
-            // ── TOMBOL BACK & JUDUL HALAMAN (TETEP STICKY DI BAWAH APP BAR) ──
-            // =================================================================
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               child: Row(
@@ -374,9 +378,6 @@ class _ManageBookingState extends State<ManageBooking> {
               ),
             ),
             
-            // =================================================================
-            // ── CHIPS FILTER MENU ──
-            // =================================================================
             SingleChildScrollView(
               scrollDirection: Axis.horizontal, padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Row(
@@ -391,14 +392,11 @@ class _ManageBookingState extends State<ManageBooking> {
             ),
             const SizedBox(height: 20),
 
-            // =================================================================
-            // ── LIST BOOKING ──
-            // =================================================================
             Expanded(
               child: _isLoading 
                 ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                 : filteredBookings.isEmpty
-                  ? Center(child: Text("Belum ada pesanan", style: AppStyles.bodyGrey))
+                  ? Center(child: Text("Belum ada pesanan aktif", style: AppStyles.bodyGrey))
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                       itemCount: filteredBookings.length,
@@ -481,11 +479,7 @@ class _ManageBookingState extends State<ManageBooking> {
     }
     String slot = "$tglFormat ${jamMulai.replaceAll(':', '.')}-${jamSelesai.replaceAll(':', '.')}";
 
-    if (status == 'TELAT') {
-      borderColor = Colors.red; statusBadgeColor = Colors.red; statusText = "Status: TELAT (15M)";
-      statusWarning = const Align(alignment: Alignment.centerRight, child: Padding(padding: EdgeInsets.only(right: 15.0, top: 10), child: Icon(Icons.warning_rounded, color: Colors.red, size: 60)));
-      actionButtons = SizedBox(width: double.infinity, child: ElevatedButton(onPressed: null, style: ElevatedButton.styleFrom(disabledBackgroundColor: Colors.grey.shade600, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: Text("Otomatis Terbatalkan", style: AppStyles.bodyWhite.copyWith(color: Colors.white70))));
-    } else if (status == 'MENUNGGU') {
+    if (status == 'MENUNGGU') {
       borderColor = Colors.amber; statusBadgeColor = Colors.amber; statusText = "Menunggu Konfirmasi";
       actionButtons = Row(
         children: [
@@ -504,6 +498,7 @@ class _ManageBookingState extends State<ManageBooking> {
        borderColor = Colors.grey; statusBadgeColor = Colors.grey; statusText = "Manual Offline";
        actionButtons = SizedBox(width: double.infinity, child: ElevatedButton(onPressed: () => _updateStatusBooking(idBooking, 'SELESAI'), style: ElevatedButton.styleFrom(backgroundColor: Colors.grey.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: Text("Buka Slot Kembali", style: AppStyles.buttonTextWhite)));
     } else {
+      // (Jaga-jaga kalau ada status nyasar)
       borderColor = Colors.grey.shade700; statusBadgeColor = Colors.grey.shade700; statusText = status;
       actionButtons = SizedBox(width: double.infinity, child: ElevatedButton(onPressed: null, style: ElevatedButton.styleFrom(disabledBackgroundColor: Colors.grey.shade800, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10))), child: Text(status == 'SELESAI' ? "Penyewaan Selesai" : "Dibatalkan", style: AppStyles.bodyGrey)));
     }
@@ -526,7 +521,7 @@ class _ManageBookingState extends State<ManageBooking> {
               Row(
                 children: [
                   Text("Status: ", style: AppStyles.bodyWhite.copyWith(fontSize: 13, fontWeight: FontWeight.bold)),
-                  Text(status == 'TELAT' ? 'TELAT (maks 15M)' : statusText, style: AppStyles.bodyWhite.copyWith(fontSize: 13, color: borderColor, fontWeight: FontWeight.bold)),
+                  Text(statusText, style: AppStyles.bodyWhite.copyWith(fontSize: 13, color: borderColor, fontWeight: FontWeight.bold)),
                 ],
               ),
               const SizedBox(height: 20),
