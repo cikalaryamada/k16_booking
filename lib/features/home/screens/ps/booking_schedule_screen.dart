@@ -72,6 +72,28 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     
     final booked = await ApiService.fetchJadwal(widget.idUnit, tglFormatSql);
     
+    // =======================================================================
+    // ── OBAT ANTI MESIN WAKTU (TUTUP JAM YANG UDAH LEWAT HARI INI) ──
+    // =======================================================================
+    DateTime sekarang = DateTime.now();
+    
+    // Cek apakah tanggal yang dipilih adalah HARI INI
+    if (_tanggalTerpilih!.year == sekarang.year && 
+        _tanggalTerpilih!.month == sekarang.month && 
+        _tanggalTerpilih!.day == sekarang.day) {
+      
+      int jamSekarang = sekarang.hour;
+      
+      // Looping dari jam 00:00 sampai jam sekarang, masukin ke daftar "Terbooking"
+      for (int i = 0; i <= jamSekarang; i++) {
+        String jamLewat = "${i.toString().padLeft(2, '0')}:00";
+        // Kalau jamnya belum ada di daftar booked, kita tambahin paksa
+        if (!booked.contains(jamLewat)) {
+          booked.add(jamLewat);
+        }
+      }
+    }
+
     setState(() {
       jamTerbooking = booked;
       _jamTerpilih = null; 
@@ -116,10 +138,8 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
 
     String tglFormatSql = DateFormat('yyyy-MM-dd').format(_tanggalTerpilih!);
     
-    // ── JURUS ANTI MESIN WAKTU ──
     int jamInt = int.parse(_jamTerpilih!.split(":")[0]);
     int hitungSelesai = jamInt + _durasiJam;
-    // Kalau selesainya pas angka 24, kita tulis "24:00" biar logis
     String jamSelesai = hitungSelesai == 24 ? "24:00" : "${(hitungSelesai % 24).toString().padLeft(2, '0')}:00";
     
     double totalHarga = widget.hargaPerJam * _durasiJam; 
@@ -194,7 +214,6 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFFFACC15),
-                      // ── KITA TAMBAHIN PADDING ATAS BAWAH BIAR GAK NABRAK ──
                       padding: const EdgeInsets.symmetric(vertical: 16), 
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       elevation: 3,
@@ -202,7 +221,7 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                     onPressed: () => Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomePage()), (route) => false),
                     child: Text(
                       'TUTUP & KEMBALI KE HALAMAN UTAMA', 
-                      textAlign: TextAlign.center, // ── OBAT TEKS KE TENGAH ──
+                      textAlign: TextAlign.center, 
                       style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.white)
                     ),
                   ),
@@ -215,13 +234,13 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
                     style: OutlinedButton.styleFrom(
                       backgroundColor: Colors.white,
                       side: const BorderSide(color: Color(0xFFFACC15), width: 2),
-                      padding: const EdgeInsets.symmetric(vertical: 16), // Samain paddingnya biar presisi
+                      padding: const EdgeInsets.symmetric(vertical: 16), 
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     onPressed: () => Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const BookingHistoryPage())),
                     child: Text(
                       'LIHAT RIWAYAT PESANAN', 
-                      textAlign: TextAlign.center, // Jaga-jaga disetting ke tengah juga
+                      textAlign: TextAlign.center, 
                       style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFFACC15))
                     ),
                   ),
@@ -443,7 +462,6 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
   }
 
   Widget _buildSummaryCard() {
-    // ── JURUS ANTI MESIN WAKTU ──
     int jamAwal = int.parse(_jamTerpilih!.split(":")[0]);
     int hitungSelesai = jamAwal + _durasiJam;
     String jamSelesai = hitungSelesai == 24 ? "24:00" : "${(hitungSelesai % 24).toString().padLeft(2, '0')}:00";
