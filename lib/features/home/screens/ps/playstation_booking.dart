@@ -8,9 +8,9 @@ import '../home_page_cust.dart';
 import '../../../profile/screens/profil_customer.dart'; 
 import 'seat_playstation.dart'; 
 
-// ── WAJIB IMPORT HALAMAN NOTIFIKASI & HISTORY ──
-import '../Notifikasipage.dart'; 
-import '../BookingHistoryPage.dart'; 
+
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; 
 
 class RentalPlaystationScreen extends StatefulWidget {
   const RentalPlaystationScreen({super.key});
@@ -19,17 +19,20 @@ class RentalPlaystationScreen extends StatefulWidget {
   State<RentalPlaystationScreen> createState() => _RentalPlaystationScreenState();
 }
 
+// STATE CLASS
 class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
-  List<dynamic> playstations = [];
+  List<dynamic> playstations = []; //menyimpan data list PS dari API
   bool isLoading = true;
   int _selectedIndex = 0; 
 
+  // METHOD INITSTATE - DIPANGGIL PERTAMA KALI
   @override
   void initState() {
     super.initState();
     _tarikDataPS();
-  }
+  } 
 
+  // METHOD FETCH DATA DARI API
   Future<void> _tarikDataPS() async {
     try {
       final data = await ApiService.fetchKatalog('ps');
@@ -45,30 +48,31 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
     }
   }
 
+// METHOD BUILD - MEMBANGUN UI
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
+      body: SafeArea( //SafeArea mencegah konten tertutup notch atau status bar.
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-              child: _buildHeader(context), // ── CONTEXT DIKIRIM KE HEADER BIAR BISA PINDAH HALAMAN ──
+              child: _buildHeader(context), 
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20.0),
               child: _buildSubHeader(context),
             ),
             const SizedBox(height: 20),
-            Expanded(
+            Expanded( //Expanded membuat ListView mengisi sisa ruang
               child: isLoading 
                   ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
                   : playstations.isEmpty
                       ? Center(child: Text("Data PS Kosong", style: AppStyles.bodyWhite))
-                      : ListView.builder(
+                      : ListView.builder( //ListView.builder efisien untuk list panjang — hanya membangun item yang terlihat di layar. 
                           padding: const EdgeInsets.symmetric(horizontal: 20),
-                          itemCount: playstations.length,
+                          itemCount: playstations.length, //itemCount menentukan jumlah item
                           itemBuilder: (context, index) {
                             return _buildCard(context, playstations[index]);
                           },
@@ -158,6 +162,7 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
     );
   }
 
+  // METHOD BUILD SUB-HEADER (BACK + JUDUL)
   Widget _buildSubHeader(BuildContext context) {
     return Row(
       children: [
@@ -178,6 +183,7 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
     );
   }
 
+  // METHOD BUILD CARD PS
   Widget _buildCard(BuildContext context, dynamic item) {
     int jumlahKursi = int.tryParse(item['jumlah_kursi'].toString()) ?? 0;
     bool isAvailable = jumlahKursi > 0;
@@ -241,6 +247,7 @@ class _RentalPlaystationScreenState extends State<RentalPlaystationScreen> {
             ],
           ),
           
+//jika tersida menampiilkan book now
           if (isAvailable) ...[
             const SizedBox(height: 16),
             SizedBox(

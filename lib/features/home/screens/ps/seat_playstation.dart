@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+
 
 import '../../../../core/constants/app_colors.dart'; 
 import '../../../../core/constants/app_styles.dart'; 
@@ -11,8 +10,8 @@ import 'booking_schedule_screen.dart';
 // ── IMPORT HALAMAN LAIN BIAR NAVBAR & LONCENG BERFUNGSI ──
 import '../home_page_cust.dart'; 
 import '../../../profile/screens/profil_customer.dart'; 
-import '../Notifikasipage.dart'; 
-import '../BookingHistoryPage.dart'; // ── WAJIB IMPORT HISTORY DI SINI ──
+import '../notifikasipage.dart'; 
+import '../bookinghistorypage.dart'; // ── WAJIB IMPORT HISTORY DI SINI ──
 
 class SeatSelectionScreen extends StatefulWidget {
   final String namaTampil; 
@@ -24,16 +23,18 @@ class SeatSelectionScreen extends StatefulWidget {
 }
 
 class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
-  List<dynamic> seats = [];
+  List<dynamic> seats = []; //menyimpan data list PS dari API
   bool isLoading = true;
-  int _selectedIndex = 0; // Tambahan buat Nav Bar
+  int _selectedIndex = 0; 
 
+//DIPANGGIL PERTAMA KALI
   @override
   void initState() {
     super.initState();
     fetchDataKursi(); 
   }
 
+ // METHOD FETCH DATA DARI API
   Future<void> fetchDataKursi() async {
     try {
       final data = await ApiService.fetchKursi(widget.namaTampil);
@@ -171,6 +172,7 @@ class _SeatSelectionScreenState extends State<SeatSelectionScreen> {
     );
   }
 
+//sub header
   Widget _buildSubHeader(BuildContext context) {
     return Row(
       children: [
